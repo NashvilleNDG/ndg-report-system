@@ -1,0 +1,157 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         Role     @default(CLIENT)
+  clientId     String?  @unique
+  client       Client?  @relation(fields: [clientId], references: [id])
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+enum Role {
+  ADMIN
+  TEAM
+  CLIENT
+}
+
+model Client {
+  id           String      @id @default(cuid())
+  name         String
+  slug         String      @unique
+  logoUrl      String?
+  industry     String?
+  contactEmail String?
+  isActive     Boolean     @default(true)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  user         User?
+  reports      Report[]
+  driveConfig  DriveConfig?
+}
+
+model DriveConfig {
+  id           String    @id @default(cuid())
+  clientId     String    @unique
+  client       Client    @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  driveFileId  String
+  driveFileName String?
+  sheetName    String?
+  lastSyncedAt DateTime?
+  syncStatus   String?
+  syncError    String?
+}
+
+model Report {
+  id          String       @id @default(cuid())
+  clientId    String
+  client      Client       @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  period      String
+  status      ReportStatus @default(DRAFT)
+  notes       String?
+  publishedAt DateTime?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  socialMedia SocialMediaData?
+  websiteData WebsiteData?
+  gmbData     GMBData?
+
+  @@unique([clientId, period])
+  @@index([clientId, period])
+}
+
+enum ReportStatus {
+  DRAFT
+  PUBLISHED
+}
+
+model SocialMediaData {
+  id       String  @id @default(cuid())
+  reportId String  @unique
+  report   Report  @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  instagram InstagramData?
+  facebook  FacebookData?
+  youtube   YouTubeData?
+  tiktok    TikTokData?
+}
+
+model InstagramData {
+  id                String          @id @default(cuid())
+  socialMediaDataId String          @unique
+  socialMediaData   SocialMediaData @relation(fields: [socialMediaDataId], references: [id], onDelete: Cascade)
+  followers         Int?
+  followersChange   Int?
+  likes             Int?
+  reach             Int?
+  impressions       Int?
+  engagement        Float?
+}
+
+model FacebookData {
+  id                String          @id @default(cuid())
+  socialMediaDataId String          @unique
+  socialMediaData   SocialMediaData @relation(fields: [socialMediaDataId], references: [id], onDelete: Cascade)
+  followers         Int?
+  followersChange   Int?
+  likes             Int?
+  reach             Int?
+  impressions       Int?
+  engagement        Float?
+}
+
+model YouTubeData {
+  id                String          @id @default(cuid())
+  socialMediaDataId String          @unique
+  socialMediaData   SocialMediaData @relation(fields: [socialMediaDataId], references: [id], onDelete: Cascade)
+  subscribers       Int?
+  subscribersChange Int?
+  likes             Int?
+  views             Int?
+  impressions       Int?
+  engagement        Float?
+}
+
+model TikTokData {
+  id                String          @id @default(cuid())
+  socialMediaDataId String          @unique
+  socialMediaData   SocialMediaData @relation(fields: [socialMediaDataId], references: [id], onDelete: Cascade)
+  followers         Int?
+  followersChange   Int?
+  likes             Int?
+  reach             Int?
+  impressions       Int?
+  engagement        Float?
+}
+
+model WebsiteData {
+  id             String  @id @default(cuid())
+  reportId       String  @unique
+  report         Report  @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  sessions       Int?
+  users          Int?
+  pageviews      Int?
+  bounceRate     Float?
+  conversions    Int?
+  conversionRate Float?
+}
+
+model GMBData {
+  id                   String  @id @default(cuid())
+  reportId             String  @unique
+  report               Report  @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  profileViews         Int?
+  searchImpressions    Int?
+  businessInteractions Int?
+  clicks               Int?
+  calls                Int?
+  directionRequests    Int?
+}

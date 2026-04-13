@@ -39,3 +39,15 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# database
+prisma/dev.db
+prisma/dev.db-shm
+prisma/dev.db-wal
+
+# service account keys
+lib/*.json
+*.json.key
+
+# claude
+.claude/
