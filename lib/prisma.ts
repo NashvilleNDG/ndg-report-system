@@ -1,11 +1,21 @@
 import { PrismaClient } from "@prisma/client";
-import { PrismaLibSql } from "@prisma/adapter-libsql";
-import path from "path";
+
+const isPostgres = process.env.DATABASE_URL?.startsWith("postgres");
 
 function createPrismaClient() {
-  const dbPath = path.resolve(process.cwd(), "prisma/dev.db");
-  const adapter = new PrismaLibSql({ url: `file:${dbPath}` });
-  return new PrismaClient({ adapter });
+  if (isPostgres) {
+    // PostgreSQL adapter for production (Render)
+    const { PrismaPg } = require("@prisma/adapter-pg");
+    const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! });
+    return new PrismaClient({ adapter });
+  } else {
+    // LibSQL adapter for local SQLite development
+    const { PrismaLibSql } = require("@prisma/adapter-libsql");
+    const path = require("path");
+    const dbPath = path.resolve(process.cwd(), "prisma/dev.db");
+    const adapter = new PrismaLibSql({ url: `file:${dbPath}` });
+    return new PrismaClient({ adapter });
+  }
 }
 
 const globalForPrisma = globalThis as unknown as {
