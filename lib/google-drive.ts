@@ -12,16 +12,32 @@ function getAuth() {
   });
 }
 
+const XLSX_MIME = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+const GSHEET_MIME = "application/vnd.google-apps.spreadsheet";
+
 export async function downloadDriveFile(fileId: string): Promise<Buffer> {
   const auth = getAuth();
   const drive = google.drive({ version: "v3", auth });
 
-  const response = await drive.files.get(
-    { fileId, alt: "media" },
-    { responseType: "arraybuffer" }
-  );
+  // Check the file's mimeType first
+  const meta = await drive.files.get({ fileId, fields: "mimeType,name" });
+  const mimeType = meta.data.mimeType ?? "";
 
-  return Buffer.from(response.data as ArrayBuffer);
+  if (mimeType === GSHEET_MIME) {
+    // Google Sheets — must export as xlsx
+    const response = await drive.files.export(
+      { fileId, mimeType: XLSX_MIME },
+      { responseType: "arraybuffer" }
+    );
+    return Buffer.from(response.data as ArrayBuffer);
+  } else {
+    // Regular xlsx file — download directly
+    const response = await drive.files.get(
+      { fileId, alt: "media" },
+      { responseType: "arraybuffer" }
+    );
+    return Buffer.from(response.data as ArrayBuffer);
+  }
 }
 
 export async function getDriveFileName(fileId: string): Promise<string> {
