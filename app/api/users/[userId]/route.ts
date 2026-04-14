@@ -6,8 +6,9 @@ import bcrypt from "bcryptjs";
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { userId: string } }
+  { params }: { params: Promise<{ userId: string }> }
 ) {
+  const { userId } = await params;
   const session = await auth();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
@@ -16,7 +17,7 @@ export async function GET(
   }
 
   const user = await prisma.user.findUnique({
-    where: { id: params.userId },
+    where: { id: userId },
     select: { id: true, name: true, email: true, role: true, clientId: true, createdAt: true },
   });
 
@@ -27,8 +28,9 @@ export async function GET(
 
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { userId: string } }
+  { params }: { params: Promise<{ userId: string }> }
 ) {
+  const { userId } = await params;
   const session = await auth();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
@@ -36,7 +38,7 @@ export async function PUT(
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const user = await prisma.user.findUnique({ where: { id: params.userId } });
+  const user = await prisma.user.findUnique({ where: { id: userId } });
   if (!user) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   const body = await req.json();
@@ -53,7 +55,7 @@ export async function PUT(
   }
 
   const updated = await prisma.user.update({
-    where: { id: params.userId },
+    where: { id: userId },
     data,
     select: { id: true, name: true, email: true, role: true, clientId: true, createdAt: true },
   });
@@ -63,8 +65,9 @@ export async function PUT(
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { userId: string } }
+  { params }: { params: Promise<{ userId: string }> }
 ) {
+  const { userId } = await params;
   const session = await auth();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
@@ -72,14 +75,14 @@ export async function DELETE(
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  if (session.user.id === params.userId) {
+  if (session.user.id === userId) {
     return NextResponse.json({ error: "Cannot delete your own account" }, { status: 400 });
   }
 
-  const user = await prisma.user.findUnique({ where: { id: params.userId } });
+  const user = await prisma.user.findUnique({ where: { id: userId } });
   if (!user) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  await prisma.user.delete({ where: { id: params.userId } });
+  await prisma.user.delete({ where: { id: userId } });
 
   return NextResponse.json({ success: true });
 }

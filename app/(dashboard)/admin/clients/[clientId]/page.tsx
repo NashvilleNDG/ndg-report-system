@@ -5,15 +5,16 @@ import Link from "next/link";
 import { periodLabel } from "@/lib/report-utils";
 
 interface PageProps {
-  params: { clientId: string };
+  params: Promise<{ clientId: string }>;
 }
 
 export default async function AdminClientDetailPage({ params }: PageProps) {
+  const { clientId } = await params;
   const session = await auth();
   if (!session || session.user.role !== "ADMIN") redirect("/login");
 
   const client = await prisma.client.findUnique({
-    where: { id: params.clientId },
+    where: { id: clientId },
     include: {
       reports: {
         orderBy: { period: "desc" },

@@ -32,12 +32,13 @@ async function getReportWithAccess(reportId: string, session: Awaited<ReturnType
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { reportId: string } }
+  { params }: { params: Promise<{ reportId: string }> }
 ) {
+  const { reportId } = await params;
   const session = await auth();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const report = await getReportWithAccess(params.reportId, session);
+  const report = await getReportWithAccess(reportId, session);
   if (!report) return NextResponse.json({ error: "Not found or forbidden" }, { status: 404 });
 
   return NextResponse.json({
@@ -49,8 +50,9 @@ export async function GET(
 
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { reportId: string } }
+  { params }: { params: Promise<{ reportId: string }> }
 ) {
+  const { reportId } = await params;
   const session = await auth();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
@@ -59,7 +61,7 @@ export async function PUT(
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const report = await prisma.report.findUnique({ where: { id: params.reportId } });
+  const report = await prisma.report.findUnique({ where: { id: reportId } });
   if (!report) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   const body = await req.json();

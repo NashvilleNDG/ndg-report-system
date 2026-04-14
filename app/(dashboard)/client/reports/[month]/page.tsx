@@ -8,10 +8,11 @@ import GMBSection from "@/components/reports/GMBSection";
 import type { FullReport } from "@/types/report";
 
 interface PageProps {
-  params: { month: string };
+  params: Promise<{ month: string }>;
 }
 
 export default async function ClientMonthReportPage({ params }: PageProps) {
+  const { month } = await params;
   const session = await auth();
   if (!session || session.user.role !== "CLIENT") redirect("/login");
 
@@ -19,7 +20,7 @@ export default async function ClientMonthReportPage({ params }: PageProps) {
   if (!clientId) redirect("/client");
 
   const report = await prisma.report.findUnique({
-    where: { clientId_period: { clientId, period: params.month } },
+    where: { clientId_period: { clientId, period: month } },
     include: {
       client: { select: { name: true, slug: true, logoUrl: true } },
       socialMedia: { include: { instagram: true, facebook: true, youtube: true, tiktok: true } },

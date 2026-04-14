@@ -4,13 +4,14 @@ import { prisma } from "@/lib/prisma";
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { reportId: string } }
+  { params }: { params: Promise<{ reportId: string }> }
 ) {
+  const { reportId } = await params;
   const session = await auth();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const report = await prisma.report.findUnique({
-    where: { id: params.reportId },
+    where: { id: reportId },
     include: {
       client: { select: { name: true, slug: true, logoUrl: true } },
       socialMedia: {
@@ -38,8 +39,9 @@ export async function GET(
 
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { reportId: string } }
+  { params }: { params: Promise<{ reportId: string }> }
 ) {
+  const { reportId } = await params;
   const session = await auth();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
@@ -48,7 +50,7 @@ export async function PUT(
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const report = await prisma.report.findUnique({ where: { id: params.reportId } });
+  const report = await prisma.report.findUnique({ where: { id: reportId } });
   if (!report) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   const body = await req.json();
@@ -68,7 +70,7 @@ export async function PUT(
   }
 
   const updated = await prisma.report.update({
-    where: { id: params.reportId },
+    where: { id: reportId },
     data,
     include: { client: { select: { name: true, slug: true, logoUrl: true } } },
   });
@@ -78,8 +80,9 @@ export async function PUT(
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { reportId: string } }
+  { params }: { params: Promise<{ reportId: string }> }
 ) {
+  const { reportId } = await params;
   const session = await auth();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
@@ -87,10 +90,10 @@ export async function DELETE(
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const report = await prisma.report.findUnique({ where: { id: params.reportId } });
+  const report = await prisma.report.findUnique({ where: { id: reportId } });
   if (!report) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  await prisma.report.delete({ where: { id: params.reportId } });
+  await prisma.report.delete({ where: { id: reportId } });
 
   return NextResponse.json({ success: true });
 }
