@@ -43,7 +43,7 @@ const COL = {
 } as const;
 
 function num(
-  row: (string | number | null | undefined)[],
+  row: (string | number | Date | null | undefined)[],
   col: number
 ): number | null {
   const val = row[col];
