@@ -13,10 +13,18 @@ interface Client {
   _count: { reports: number };
 }
 
+function toSlug(name: string) {
+  return name.toLowerCase().trim().replace(/[\s_]+/g, "-").replace(/[^a-z0-9-]/g, "");
+}
+
 function NewClientModal({ onClose, onCreated }: { onClose: () => void; onCreated: () => void }) {
   const [form, setForm] = useState({ name: "", slug: "", industry: "", contactEmail: "" });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  const handleNameChange = (name: string) => {
+    setForm((f) => ({ ...f, name, slug: toSlug(name) }));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,8 +36,14 @@ function NewClientModal({ onClose, onCreated }: { onClose: () => void; onCreated
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
       });
+      const data = await res.json();
       if (!res.ok) {
-        const data = await res.json();
+        // Handle Zod flatten error or plain string error
+        if (typeof data.error === "object" && data.error !== null) {
+          const fieldErrors = data.error.fieldErrors ?? {};
+          const msgs = Object.values(fieldErrors).flat().join(", ");
+          throw new Error(msgs || data.error.formErrors?.join(", ") || "Validation failed");
+        }
         throw new Error(data.error ?? "Failed to create client");
       }
       onCreated();
@@ -54,23 +68,46 @@ function NewClientModal({ onClose, onCreated }: { onClose: () => void; onCreated
           </div>
         )}
         <form onSubmit={handleSubmit} className="space-y-4">
-          {[
-            { label: "Name", key: "name", type: "text", required: true },
-            { label: "Slug", key: "slug", type: "text", required: true },
-            { label: "Industry", key: "industry", type: "text", required: false },
-            { label: "Contact Email", key: "contactEmail", type: "email", required: false },
-          ].map(({ label, key, type, required }) => (
-            <div key={key}>
-              <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
-              <input
-                type={type}
-                required={required}
-                value={form[key as keyof typeof form]}
-                onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))}
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              />
-            </div>
-          ))}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+            <input
+              type="text"
+              required
+              value={form.name}
+              onChange={(e) => handleNameChange(e.target.value)}
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Slug <span className="text-gray-400 font-normal">(auto-generated, lowercase-hyphens)</span>
+            </label>
+            <input
+              type="text"
+              required
+              value={form.slug}
+              onChange={(e) => setForm((f) => ({ ...f, slug: toSlug(e.target.value) }))}
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Industry</label>
+            <input
+              type="text"
+              value={form.industry}
+              onChange={(e) => setForm((f) => ({ ...f, industry: e.target.value }))}
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Contact Email</label>
+            <input
+              type="email"
+              value={form.contactEmail}
+              onChange={(e) => setForm((f) => ({ ...f, contactEmail: e.target.value }))}
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+          </div>
           <div className="flex gap-3 pt-2">
             <button
               type="button"
