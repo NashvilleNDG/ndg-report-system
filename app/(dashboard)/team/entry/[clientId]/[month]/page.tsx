@@ -238,7 +238,7 @@ export default function TeamEntryPage() {
       </div>
 
       {/* Save Button */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-4 flex-wrap">
         <button
           onClick={handleSave}
           disabled={saving}
@@ -246,6 +246,12 @@ export default function TeamEntryPage() {
         >
           {saving ? "Saving…" : "Save All Data"}
         </button>
+        <a
+          href={`/team/preview/${clientId}/${month}`}
+          className="inline-flex items-center gap-1.5 bg-amber-50 text-amber-700 border border-amber-200 px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-amber-100 transition-colors"
+        >
+          👁 Preview Report
+        </a>
         {saveMsg && (
           <span className={`text-sm font-medium ${
             saveMsg.startsWith("Saved") ? "text-green-600" : "text-red-600"

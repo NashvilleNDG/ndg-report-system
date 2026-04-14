@@ -168,6 +168,12 @@ export default function AdminClientDetailPage() {
                           : "Publish"}
                       </button>
                       <Link
+                        href={`/team/preview/${client.id}/${r.period}`}
+                        className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 transition-colors"
+                      >
+                        👁 Preview
+                      </Link>
+                      <Link
                         href={`/team/entry/${client.id}/${r.period}`}
                         className="text-indigo-600 hover:text-indigo-800 font-medium text-xs"
                       >
