@@ -1,30 +1,75 @@
-import { auth } from "@/auth";
-import { redirect, notFound } from "next/navigation";
-import { prisma } from "@/lib/prisma";
+"use client";
+
+import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
 import Link from "next/link";
 import { periodLabel } from "@/lib/report-utils";
 
-interface PageProps {
-  params: Promise<{ clientId: string }>;
+interface Report {
+  id: string;
+  period: string;
+  status: string;
+  updatedAt: string;
 }
 
-export default async function AdminClientDetailPage({ params }: PageProps) {
-  const { clientId } = await params;
-  const session = await auth();
-  if (!session || session.user.role !== "ADMIN") redirect("/login");
+interface Client {
+  id: string;
+  name: string;
+  slug: string;
+  industry: string | null;
+  contactEmail: string | null;
+  isActive: boolean;
+  reports: Report[];
+  driveConfig: { lastSyncedAt: string | null; syncStatus: string | null } | null;
+}
 
-  const client = await prisma.client.findUnique({
-    where: { id: clientId },
-    include: {
-      reports: {
-        orderBy: { period: "desc" },
-        select: { id: true, period: true, status: true, updatedAt: true },
-      },
-      driveConfig: { select: { lastSyncedAt: true, syncStatus: true } },
-    },
-  });
+export default function AdminClientDetailPage() {
+  const params = useParams<{ clientId: string }>();
+  const clientId = params.clientId;
 
-  if (!client) notFound();
+  const [client, setClient] = useState<Client | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [publishing, setPublishing] = useState<string | null>(null);
+
+  const load = async () => {
+    const res = await fetch(`/api/clients/${clientId}`);
+    if (res.ok) {
+      const data = await res.json();
+      // fetch reports separately
+      const rRes = await fetch(`/api/reports?clientId=${clientId}`);
+      const reports = rRes.ok ? await rRes.json() : [];
+      setClient({ ...data, reports });
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => { load(); }, [clientId]);
+
+  const togglePublish = async (report: Report) => {
+    setPublishing(report.id);
+    const newStatus = report.status === "PUBLISHED" ? "DRAFT" : "PUBLISHED";
+    const res = await fetch(`/api/reports/${report.id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status: newStatus }),
+    });
+    if (res.ok) {
+      setClient((prev) =>
+        prev
+          ? {
+              ...prev,
+              reports: prev.reports.map((r) =>
+                r.id === report.id ? { ...r, status: newStatus } : r
+              ),
+            }
+          : prev
+      );
+    }
+    setPublishing(null);
+  };
+
+  if (loading) return <div className="flex items-center justify-center h-64 text-gray-400">Loading…</div>;
+  if (!client) return <div className="text-red-500 p-6">Client not found.</div>;
 
   return (
     <div className="space-y-7">
@@ -70,8 +115,9 @@ export default async function AdminClientDetailPage({ params }: PageProps) {
 
       {/* Reports Table */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+        <div className="px-6 py-4 border-b border-gray-100">
           <h2 className="text-base font-semibold text-gray-800">Reports ({client.reports.length})</h2>
+          <p className="text-xs text-gray-400 mt-0.5">Publish a report to make it visible to the client.</p>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
@@ -84,7 +130,7 @@ export default async function AdminClientDetailPage({ params }: PageProps) {
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-50">
+            <tbody className="divide-y divide-gray-100">
               {client.reports.length === 0 ? (
                 <tr>
                   <td colSpan={4} className="px-6 py-8 text-center text-gray-400">No reports yet.</td>
@@ -106,17 +152,26 @@ export default async function AdminClientDetailPage({ params }: PageProps) {
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
+                      <button
+                        onClick={() => togglePublish(r)}
+                        disabled={publishing === r.id}
+                        className={`text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50 ${
+                          r.status === "PUBLISHED"
+                            ? "bg-yellow-50 text-yellow-700 hover:bg-yellow-100 border border-yellow-200"
+                            : "bg-green-600 text-white hover:bg-green-700"
+                        }`}
+                      >
+                        {publishing === r.id
+                          ? "…"
+                          : r.status === "PUBLISHED"
+                          ? "Unpublish"
+                          : "Publish"}
+                      </button>
                       <Link
                         href={`/team/entry/${client.id}/${r.period}`}
                         className="text-indigo-600 hover:text-indigo-800 font-medium text-xs"
                       >
                         Edit Data
-                      </Link>
-                      <Link
-                        href={`/client/reports/${r.period}`}
-                        className="text-gray-500 hover:text-gray-700 font-medium text-xs"
-                      >
-                        View
                       </Link>
                     </div>
                   </td>
