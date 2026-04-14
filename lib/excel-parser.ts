@@ -52,11 +52,51 @@ function num(
   return isNaN(n) ? null : n;
 }
 
+function toPeriod(val: string | number | null | undefined | Date): string | null {
+  if (val == null || val === "") return null;
+
+  // Already a JS Date (when cellDates: true)
+  if (val instanceof Date) {
+    const y = val.getFullYear();
+    const m = String(val.getMonth() + 1).padStart(2, "0");
+    return `${y}-${m}`;
+  }
+
+  // Excel date serial number (e.g. 46023 = Jan 2026)
+  if (typeof val === "number") {
+    const date = XLSX.SSF.parse_date_code(val);
+    if (date) {
+      const m = String(date.m).padStart(2, "0");
+      return `${date.y}-${m}`;
+    }
+    return null;
+  }
+
+  // String — validate YYYY-MM format
+  const s = String(val).trim();
+  if (/^\d{4}-\d{2}$/.test(s)) return s;
+
+  // Handle "Jan 2026", "January 2026", "2026/01", "01/2026" etc.
+  const monthNames: Record<string, string> = {
+    jan:"01",feb:"02",mar:"03",apr:"04",may:"05",jun:"06",
+    jul:"07",aug:"08",sep:"09",oct:"10",nov:"11",dec:"12"
+  };
+  const mname = s.match(/([a-zA-Z]{3,})\s+(\d{4})/);
+  if (mname) {
+    const mo = monthNames[mname[1].toLowerCase().slice(0,3)];
+    if (mo) return `${mname[2]}-${mo}`;
+  }
+  const slash = s.match(/^(\d{4})\/(\d{2})$/) || s.match(/^(\d{2})\/(\d{4})$/);
+  if (slash) return slash[1].length === 4 ? `${slash[1]}-${slash[2]}` : `${slash[2]}-${slash[1]}`;
+
+  return null;
+}
+
 export function parseExcelBuffer(
   buffer: Buffer,
   sheetName?: string
 ): ParsedReportRow[] {
-  const workbook = XLSX.read(buffer, { type: "buffer" });
+  const workbook = XLSX.read(buffer, { type: "buffer", cellDates: true });
 
   const sheet = sheetName
     ? workbook.Sheets[sheetName] ?? workbook.Sheets[workbook.SheetNames[0]]
@@ -64,9 +104,10 @@ export function parseExcelBuffer(
 
   if (!sheet) return [];
 
-  const rows: (string | number | null)[][] = XLSX.utils.sheet_to_json(sheet, {
+  const rows: (string | number | null | Date)[][] = XLSX.utils.sheet_to_json(sheet, {
     header: 1,
     defval: null,
+    raw: true,
   });
 
   const results: ParsedReportRow[] = [];
@@ -74,13 +115,13 @@ export function parseExcelBuffer(
   // Skip header row (row 0)
   for (let i = 1; i < rows.length; i++) {
     const row = rows[i];
-    const period = row[COL.PERIOD];
+    const period = toPeriod(row[COL.PERIOD] as string | number | null | Date);
 
     // Must have a valid YYYY-MM period
-    if (!period || !/^\d{4}-\d{2}$/.test(String(period))) continue;
+    if (!period) continue;
 
     results.push({
-      period: String(period),
+      period,
       instagram: {
         followers: num(row, COL.IG_FOLLOWERS),
         followersChange: num(row, COL.IG_FOLLOWERS_CHANGE),
