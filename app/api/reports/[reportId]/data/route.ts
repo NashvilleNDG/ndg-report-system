@@ -2,8 +2,9 @@ import { auth } from "@/auth";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { reportDataSchema } from "@/lib/validators";
+import type { Session } from "next-auth";
 
-async function getReportWithAccess(reportId: string, session: Awaited<ReturnType<typeof auth>>) {
+async function getReportWithAccess(reportId: string, session: Session | null) {
   if (!session) return null;
 
   const report = await prisma.report.findUnique({
