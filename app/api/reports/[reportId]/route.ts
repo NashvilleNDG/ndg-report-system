@@ -1,6 +1,8 @@
 import { auth } from "@/auth";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { sendReportReadyEmail } from "@/lib/mailer";
+import { periodLabel } from "@/lib/report-utils";
 
 export async function GET(
   req: NextRequest,
@@ -74,6 +76,35 @@ export async function PUT(
     data,
     include: { client: { select: { name: true, slug: true, logoUrl: true } } },
   });
+
+  // Send email notifications when a report is freshly published
+  if (status === "PUBLISHED" && report.status !== "PUBLISHED") {
+    try {
+      const baseUrl = process.env.NEXTAUTH_URL ?? process.env.AUTH_TRUST_HOST ?? "https://ndg-report-system.onrender.com";
+      const reportUrl = `${baseUrl}/client/reports/${report.period}`;
+      const periodStr = periodLabel(report.period);
+
+      // Find all CLIENT users linked to this client
+      const clientUsers = await prisma.user.findMany({
+        where: { clientId: report.clientId, role: "CLIENT" },
+        select: { email: true },
+      });
+
+      await Promise.allSettled(
+        clientUsers.map((u) =>
+          sendReportReadyEmail({
+            to: u.email,
+            clientName: updated.client.name,
+            period: periodStr,
+            reportUrl,
+          })
+        )
+      );
+    } catch (err) {
+      // Don't fail the publish if email fails — just log it
+      console.error("Email send error:", err);
+    }
+  }
 
   return NextResponse.json(updated);
 }
