@@ -92,7 +92,9 @@ export async function PUT(
         select: { email: true },
       });
 
-      await Promise.allSettled(
+      console.log(`[EMAIL] Publishing report ${reportId} — found ${clientUsers.length} client user(s):`, clientUsers.map(u => u.email));
+
+      const results = await Promise.allSettled(
         clientUsers.map((u) =>
           sendReportReadyEmail({
             to: u.email,
@@ -102,9 +104,16 @@ export async function PUT(
           })
         )
       );
+
+      results.forEach((result, i) => {
+        if (result.status === "fulfilled") {
+          console.log(`[EMAIL] Sent to ${clientUsers[i].email} — OK`);
+        } else {
+          console.error(`[EMAIL] Failed to send to ${clientUsers[i].email}:`, result.reason);
+        }
+      });
     } catch (err) {
-      // Don't fail the publish if email fails — just log it
-      console.error("Email send error:", err);
+      console.error("[EMAIL] Unexpected error:", err);
     }
   }
 
