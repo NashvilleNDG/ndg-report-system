@@ -128,7 +128,7 @@ function UserModal({
             <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
             <select
               value={form.role}
-              onChange={(e) => setForm((f) => ({ ...f, role: e.target.value, clientId: "" }))}
+              onChange={(e) => setForm((f) => ({ ...f, role: e.target.value as "ADMIN" | "TEAM" | "CLIENT", clientId: "" }))}
               className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
             >
               <option value="ADMIN">ADMIN</option>
