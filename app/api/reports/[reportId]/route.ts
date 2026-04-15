@@ -80,7 +80,9 @@ export async function PUT(
   // Send email notifications when a report is freshly published
   if (status === "PUBLISHED" && report.status !== "PUBLISHED") {
     try {
-      const baseUrl = process.env.NEXTAUTH_URL ?? process.env.AUTH_TRUST_HOST ?? "https://ndg-report-system.onrender.com";
+      const baseUrl = (process.env.NEXTAUTH_URL && process.env.NEXTAUTH_URL !== "true")
+        ? process.env.NEXTAUTH_URL
+        : "https://ndg-report-system.onrender.com";
       const reportUrl = `${baseUrl}/client/reports/${report.period}`;
       const periodStr = periodLabel(report.period);
 
