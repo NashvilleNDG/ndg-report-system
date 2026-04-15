@@ -40,6 +40,19 @@ export default function AdminClientDetailPage() {
   const [editSaving, setEditSaving] = useState(false);
   const [editError, setEditError] = useState("");
 
+  // Delete report state
+  const [deletingReport, setDeletingReport] = useState<string | null>(null);
+
+  const deleteReport = async (reportId: string, period: string) => {
+    if (!confirm(`Delete report for ${periodLabel(period)}? This cannot be undone.`)) return;
+    setDeletingReport(reportId);
+    const res = await fetch(`/api/reports/${reportId}`, { method: "DELETE" });
+    if (res.ok) {
+      setReports((prev) => prev.filter((r) => r.id !== reportId));
+    }
+    setDeletingReport(null);
+  };
+
   // Notes state
   const [notesEditing, setNotesEditing] = useState<string | null>(null);
   const [notesDraft, setNotesDraft] = useState<Record<string, string>>({});
@@ -293,6 +306,13 @@ export default function AdminClientDetailPage() {
                       >
                         Edit Data
                       </Link>
+                      <button
+                        onClick={() => deleteReport(r.id, r.period)}
+                        disabled={deletingReport === r.id}
+                        className="text-red-400 hover:text-red-600 font-medium text-xs whitespace-nowrap disabled:opacity-50"
+                      >
+                        {deletingReport === r.id ? "…" : "Delete"}
+                      </button>
                     </div>
                   </td>
                 </tr>

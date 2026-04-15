@@ -22,16 +22,26 @@ const ROLE_COLORS = {
   CLIENT: "bg-green-100 text-green-700",
 };
 
-function NewUserModal({
+function UserModal({
+  mode,
+  user,
   clients,
   onClose,
-  onCreated,
+  onDone,
 }: {
+  mode: "create" | "edit";
+  user?: User;
   clients: Client[];
   onClose: () => void;
-  onCreated: () => void;
+  onDone: () => void;
 }) {
-  const [form, setForm] = useState({ name: "", email: "", password: "", role: "CLIENT", clientId: "" });
+  const [form, setForm] = useState({
+    name: user?.name ?? "",
+    email: user?.email ?? "",
+    password: "",
+    role: user?.role ?? "CLIENT",
+    clientId: user?.clientId ?? "",
+  });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -40,18 +50,28 @@ function NewUserModal({
     setLoading(true);
     setError("");
     try {
-      const body: Record<string, string> = { name: form.name, email: form.email, password: form.password, role: form.role };
+      const body: Record<string, string> = { name: form.name, email: form.email, role: form.role };
+      if (mode === "create") {
+        body.password = form.password;
+      } else if (form.password) {
+        body.password = form.password;
+      }
       if (form.role === "CLIENT" && form.clientId) body.clientId = form.clientId;
-      const res = await fetch("/api/users", {
-        method: "POST",
+      else if (form.role !== "CLIENT") body.clientId = ""; // clear if not client
+
+      const url = mode === "create" ? "/api/users" : `/api/users/${user!.id}`;
+      const method = mode === "create" ? "POST" : "PUT";
+
+      const res = await fetch(url, {
+        method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error ?? "Failed to create user");
+        throw new Error(typeof data.error === "string" ? data.error : "Failed to save");
       }
-      onCreated();
+      onDone();
       onClose();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unknown error");
@@ -64,29 +84,46 @@ function NewUserModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-md mx-4 p-6">
         <div className="flex items-center justify-between mb-5">
-          <h2 className="text-lg font-semibold text-gray-900">New User</h2>
+          <h2 className="text-lg font-semibold text-gray-900">{mode === "create" ? "New User" : "Edit User"}</h2>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600">✕</button>
         </div>
         {error && (
           <div className="mb-4 rounded-lg bg-red-50 border border-red-200 text-red-700 px-4 py-3 text-sm">{error}</div>
         )}
         <form onSubmit={handleSubmit} className="space-y-4">
-          {[
-            { label: "Name", key: "name", type: "text" },
-            { label: "Email", key: "email", type: "email" },
-            { label: "Password", key: "password", type: "password" },
-          ].map(({ label, key, type }) => (
-            <div key={key}>
-              <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
-              <input
-                type={type}
-                required
-                value={form[key as keyof typeof form]}
-                onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))}
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              />
-            </div>
-          ))}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+            <input
+              type="text"
+              required
+              value={form.name}
+              onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+            <input
+              type="email"
+              required
+              value={form.email}
+              onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Password {mode === "edit" && <span className="text-gray-400 font-normal">(leave blank to keep current)</span>}
+            </label>
+            <input
+              type="password"
+              required={mode === "create"}
+              value={form.password}
+              onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
+              placeholder={mode === "edit" ? "Leave blank to keep unchanged" : ""}
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+          </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
             <select
@@ -115,9 +152,11 @@ function NewUserModal({
             </div>
           )}
           <div className="flex gap-3 pt-2">
-            <button type="button" onClick={onClose} className="flex-1 border border-gray-200 text-gray-600 rounded-lg py-2 text-sm font-medium hover:bg-gray-50">Cancel</button>
+            <button type="button" onClick={onClose} className="flex-1 border border-gray-200 text-gray-600 rounded-lg py-2 text-sm font-medium hover:bg-gray-50">
+              Cancel
+            </button>
             <button type="submit" disabled={loading} className="flex-1 bg-indigo-600 text-white rounded-lg py-2 text-sm font-medium hover:bg-indigo-700 disabled:opacity-60">
-              {loading ? "Creating…" : "Create User"}
+              {loading ? "Saving…" : mode === "create" ? "Create User" : "Save Changes"}
             </button>
           </div>
         </form>
@@ -130,7 +169,7 @@ export default function AdminUsersPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showModal, setShowModal] = useState(false);
+  const [modal, setModal] = useState<{ mode: "create" | "edit"; user?: User } | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const fetchAll = async () => {
@@ -161,7 +200,7 @@ export default function AdminUsersPage() {
           <p className="text-sm text-gray-500 mt-1">{users.length} user{users.length !== 1 ? "s" : ""}</p>
         </div>
         <button
-          onClick={() => setShowModal(true)}
+          onClick={() => setModal({ mode: "create" })}
           className="inline-flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors"
         >
           <span>+</span> New User
@@ -194,13 +233,21 @@ export default function AdminUsersPage() {
                     {u.clientId ? (clientMap[u.clientId] ?? u.clientId) : "—"}
                   </td>
                   <td className="px-6 py-4">
-                    <button
-                      onClick={() => handleDelete(u.id)}
-                      disabled={deletingId === u.id}
-                      className="text-red-500 hover:text-red-700 text-xs font-medium disabled:opacity-50"
-                    >
-                      {deletingId === u.id ? "Deleting…" : "Delete"}
-                    </button>
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={() => setModal({ mode: "edit", user: u })}
+                        className="text-indigo-600 hover:text-indigo-800 text-xs font-medium"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => handleDelete(u.id)}
+                        disabled={deletingId === u.id}
+                        className="text-red-500 hover:text-red-700 text-xs font-medium disabled:opacity-50"
+                      >
+                        {deletingId === u.id ? "Deleting…" : "Delete"}
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -209,8 +256,14 @@ export default function AdminUsersPage() {
         </div>
       </div>
 
-      {showModal && (
-        <NewUserModal clients={clients} onClose={() => setShowModal(false)} onCreated={fetchAll} />
+      {modal && (
+        <UserModal
+          mode={modal.mode}
+          user={modal.user}
+          clients={clients}
+          onClose={() => setModal(null)}
+          onDone={fetchAll}
+        />
       )}
     </div>
   );

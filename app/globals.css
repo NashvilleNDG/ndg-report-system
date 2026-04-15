@@ -3,3 +3,12 @@
 @theme inline {
   --font-sans: var(--font-inter);
 }
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  body {
+    background: white !important;
+  }
+}

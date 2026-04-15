@@ -2,6 +2,7 @@ import { auth } from "@/auth";
 import { redirect, notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
+import PrintButton from "@/components/ui/PrintButton";
 import ReportHeader from "@/components/reports/ReportHeader";
 import SocialMediaSection from "@/components/reports/SocialMediaSection";
 import WebsiteSection from "@/components/reports/WebsiteSection";
@@ -49,6 +50,9 @@ export default async function ClientMonthReportPage({ params }: PageProps) {
 
   return (
     <div className="space-y-7">
+      <div className="no-print flex justify-end">
+        <PrintButton />
+      </div>
       <ReportHeader
         clientName={report.client.name}
         period={report.period}

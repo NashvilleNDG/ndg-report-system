@@ -6,6 +6,7 @@ import SocialMediaSection from "@/components/reports/SocialMediaSection";
 import WebsiteSection from "@/components/reports/WebsiteSection";
 import GMBSection from "@/components/reports/GMBSection";
 import Link from "next/link";
+import PrintButton from "@/components/ui/PrintButton";
 import type { FullReport } from "@/types/report";
 
 interface PageProps {
@@ -46,12 +47,15 @@ export default async function PreviewReportPage({ params }: PageProps) {
             <p className="text-xs text-amber-600">This is exactly how the client sees their report. Status: <span className={`font-semibold ${report.status === "PUBLISHED" ? "text-green-700" : "text-yellow-700"}`}>{report.status}</span></p>
           </div>
         </div>
-        <Link
-          href={backUrl}
-          className="text-xs font-medium text-amber-700 hover:text-amber-900 border border-amber-300 px-3 py-1.5 rounded-lg hover:bg-amber-100 transition-colors"
-        >
-          ← Back
-        </Link>
+        <div className="flex items-center gap-3">
+          <PrintButton />
+          <Link
+            href={backUrl}
+            className="text-xs font-medium text-amber-700 hover:text-amber-900 border border-amber-300 px-3 py-1.5 rounded-lg hover:bg-amber-100 transition-colors"
+          >
+            ← Back
+          </Link>
+        </div>
       </div>
 
       <ReportHeader
