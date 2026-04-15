@@ -6,7 +6,12 @@ export default auth((req) => {
   const path = nextUrl.pathname;
 
   // Public paths
-  if (path === "/login" || path.startsWith("/api/auth")) {
+  if (
+    path === "/login" ||
+    path === "/forgot-password" ||
+    path === "/reset-password" ||
+    path.startsWith("/api/auth")
+  ) {
     if (session && path === "/login") {
       return redirectToDashboard(session.user.role, nextUrl.origin);
     }
