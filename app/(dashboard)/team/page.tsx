@@ -1,45 +1,62 @@
-import { auth } from "@/auth";
-import { redirect } from "next/navigation";
-import { prisma } from "@/lib/prisma";
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { currentPeriod } from "@/lib/report-utils";
 
-export default async function TeamDashboardPage() {
-  const session = await auth();
-  if (!session || (session.user.role !== "TEAM" && session.user.role !== "ADMIN")) {
-    redirect("/login");
-  }
+interface Client {
+  id: string;
+  name: string;
+  industry: string | null;
+  isActive: boolean;
+}
 
-  const clients = await prisma.client.findMany({
-    where: { isActive: true },
-    orderBy: { name: "asc" },
-    select: { id: true, name: true, industry: true },
-  });
+export default function TeamDashboardPage() {
+  const [clients, setClients] = useState<Client[]>([]);
+  const [selectedMonth, setSelectedMonth] = useState(currentPeriod());
 
-  const period = currentPeriod();
+  useEffect(() => {
+    fetch("/api/clients")
+      .then((r) => r.ok ? r.json() : [])
+      .then(setClients);
+  }, []);
+
+  const activeClients = clients.filter((c) => c.isActive);
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Team Dashboard</h1>
           <p className="text-sm text-gray-500 mt-1">Select a client to enter or upload report data.</p>
         </div>
-        <Link
-          href="/team/upload"
-          className="inline-flex items-center gap-2 bg-white border border-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors shadow-sm"
-        >
-          <span>📤</span> Upload Excel / Drive
-        </Link>
+        <div className="flex items-center gap-3 flex-wrap">
+          {/* Month Picker */}
+          <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-lg px-3 py-1.5 shadow-sm">
+            <label className="text-sm font-medium text-gray-600">Month:</label>
+            <input
+              type="month"
+              value={selectedMonth}
+              onChange={(e) => setSelectedMonth(e.target.value)}
+              className="text-sm text-gray-900 focus:outline-none"
+            />
+          </div>
+          <Link
+            href="/team/upload"
+            className="inline-flex items-center gap-2 bg-white border border-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors shadow-sm"
+          >
+            <span>📤</span> Upload Excel / Drive
+          </Link>
+        </div>
       </div>
 
-      {clients.length === 0 ? (
+      {activeClients.length === 0 ? (
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-12 text-center text-gray-400">
           No active clients found.
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {clients.map((client) => (
+          {activeClients.map((client) => (
             <div
               key={client.id}
               className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 flex flex-col gap-4 hover:shadow-md transition-shadow"
@@ -52,7 +69,7 @@ export default async function TeamDashboardPage() {
               </div>
               <div className="flex gap-2">
                 <Link
-                  href={`/team/entry/${client.id}/${period}`}
+                  href={`/team/entry/${client.id}/${selectedMonth}`}
                   className="flex-1 text-center bg-indigo-600 text-white py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors"
                 >
                   Enter Data
