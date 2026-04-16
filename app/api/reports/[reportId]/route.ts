@@ -3,7 +3,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { sendReportReadyEmail } from "@/lib/mailer";
 import { periodLabel } from "@/lib/report-utils";
-import { generateReportPdf } from "@/lib/report-pdf";
 
 export async function GET(
   req: NextRequest,
@@ -113,6 +112,9 @@ export async function PUT(
         });
 
         if (fullReport) {
+          // Dynamic import keeps @react-pdf/renderer out of the module bundle
+          // and prevents import-time errors from breaking the publish route
+          const { generateReportPdf } = await import("@/lib/report-pdf");
           pdfBuffer = await generateReportPdf(fullReport as Parameters<typeof generateReportPdf>[0]);
           console.log(`[PDF] Generated ${Math.round(pdfBuffer.length / 1024)}KB for report ${reportId}`);
         }
