@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { sendReportReadyEmail } from "@/lib/mailer";
 import { periodLabel } from "@/lib/report-utils";
+import { generateReportPdf } from "@/lib/report-pdf";
 
 export async function GET(
   req: NextRequest,
@@ -77,7 +78,7 @@ export async function PUT(
     include: { client: { select: { name: true, slug: true, logoUrl: true } } },
   });
 
-  // Send email notifications when a report is freshly published
+  // Send email notifications (with PDF attachment) when a report is freshly published
   if (status === "PUBLISHED" && report.status !== "PUBLISHED") {
     try {
       const baseUrl = (process.env.NEXTAUTH_URL && process.env.NEXTAUTH_URL !== "true")
@@ -94,6 +95,32 @@ export async function PUT(
 
       console.log(`[EMAIL] Publishing report ${reportId} — found ${clientUsers.length} client user(s):`, clientUsers.map(u => u.email));
 
+      // Fetch full report data (with platform relationships) for PDF generation
+      let pdfBuffer: Buffer | undefined;
+      const pdfFileName = `NDG-Report-${updated.client.name.replace(/\s+/g, "-")}-${report.period}.pdf`;
+
+      try {
+        const fullReport = await prisma.report.findUnique({
+          where: { id: reportId },
+          include: {
+            client: { select: { name: true, slug: true, logoUrl: true } },
+            socialMedia: {
+              include: { instagram: true, facebook: true, youtube: true, tiktok: true },
+            },
+            websiteData: true,
+            gmbData: true,
+          },
+        });
+
+        if (fullReport) {
+          pdfBuffer = await generateReportPdf(fullReport as Parameters<typeof generateReportPdf>[0]);
+          console.log(`[PDF] Generated ${Math.round(pdfBuffer.length / 1024)}KB for report ${reportId}`);
+        }
+      } catch (pdfErr) {
+        // PDF failure is non-fatal — still send email without attachment
+        console.error("[PDF] Failed to generate PDF, sending email without attachment:", pdfErr);
+      }
+
       const results = await Promise.allSettled(
         clientUsers.map((u) =>
           sendReportReadyEmail({
@@ -101,13 +128,15 @@ export async function PUT(
             clientName: updated.client.name,
             period: periodStr,
             reportUrl,
+            pdfBuffer,
+            fileName: pdfFileName,
           })
         )
       );
 
       results.forEach((result, i) => {
         if (result.status === "fulfilled") {
-          console.log(`[EMAIL] Sent to ${clientUsers[i].email} — OK`);
+          console.log(`[EMAIL] Sent to ${clientUsers[i].email} — OK${pdfBuffer ? " (with PDF)" : ""}`);
         } else {
           console.error(`[EMAIL] Failed to send to ${clientUsers[i].email}:`, result.reason);
         }
