@@ -144,51 +144,76 @@ export default function AdminClientDetailPage() {
     setNotesSaving(null);
   };
 
-  if (loading) return <div className="flex items-center justify-center h-64 text-gray-400">Loading…</div>;
+  if (loading) return (
+    <div className="flex items-center justify-center h-64">
+      <div className="flex flex-col items-center gap-3">
+        <svg className="w-8 h-8 text-gray-300 animate-spin" fill="none" viewBox="0 0 24 24">
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+        </svg>
+        <span className="text-gray-400 text-sm">Loading client…</span>
+      </div>
+    </div>
+  );
   if (!client) return <div className="text-red-500 p-6">Client not found.</div>;
 
   return (
     <div className="space-y-7">
       {/* Breadcrumb */}
-      <div className="flex items-center gap-2 text-sm text-gray-500">
-        <Link href="/admin/clients" className="hover:text-indigo-600">Clients</Link>
-        <span>/</span>
-        <span className="text-gray-900 font-medium">{client.name}</span>
+      <div className="flex items-center gap-2 text-sm">
+        <Link href="/admin/clients" className="text-gray-400 hover:text-indigo-600 transition-colors font-medium">Clients</Link>
+        <svg className="w-3.5 h-3.5 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+        </svg>
+        <span className="text-gray-700 font-semibold">{client.name}</span>
       </div>
 
       {/* Client Info Card */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">{client.name}</h1>
-            <p className="text-sm text-gray-500 font-mono mt-1">{client.slug}</p>
-          </div>
-          <div className="flex items-center gap-3">
-            <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-              client.isActive ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"
-            }`}>
-              {client.isActive ? "Active" : "Inactive"}
-            </span>
-            <button
-              onClick={openEdit}
-              className="inline-flex items-center gap-1.5 bg-white border border-gray-200 text-gray-700 px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors"
-            >
-              ✏️ Edit
-            </button>
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <div className="bg-gradient-to-r from-slate-800 to-slate-700 px-6 py-5">
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center flex-shrink-0 border border-white/20">
+                <span className="text-white font-black text-xl">{client.name.charAt(0)}</span>
+              </div>
+              <div>
+                <h1 className="text-xl font-bold text-white">{client.name}</h1>
+                <p className="text-slate-400 font-mono text-xs mt-0.5">{client.slug}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold ${
+                client.isActive
+                  ? "bg-emerald-400/20 text-emerald-300 border border-emerald-400/30"
+                  : "bg-gray-400/20 text-gray-300 border border-gray-400/30"
+              }`}>
+                <span className={`w-1.5 h-1.5 rounded-full ${client.isActive ? "bg-emerald-400" : "bg-gray-400"}`} />
+                {client.isActive ? "Active" : "Inactive"}
+              </span>
+              <button
+                onClick={openEdit}
+                className="inline-flex items-center gap-1.5 bg-white/10 hover:bg-white/20 border border-white/20 text-white px-3 py-1.5 rounded-xl text-sm font-medium transition-colors"
+              >
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+                Edit
+              </button>
+            </div>
           </div>
         </div>
-        <div className="mt-5 grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
+        <div className="px-6 py-5 grid grid-cols-1 sm:grid-cols-3 gap-5 text-sm">
           <div>
             <p className="text-gray-400 text-xs uppercase tracking-wide font-semibold mb-1">Industry</p>
-            <p className="text-gray-800">{client.industry ?? "—"}</p>
+            <p className="text-gray-800 font-medium">{client.industry ?? "—"}</p>
           </div>
           <div>
             <p className="text-gray-400 text-xs uppercase tracking-wide font-semibold mb-1">Contact Email</p>
-            <p className="text-gray-800">{client.contactEmail ?? "—"}</p>
+            <p className="text-gray-800 font-medium">{client.contactEmail ?? "—"}</p>
           </div>
           <div>
             <p className="text-gray-400 text-xs uppercase tracking-wide font-semibold mb-1">Drive Sync</p>
-            <p className="text-gray-800">
+            <p className="text-gray-800 font-medium">
               {client.driveConfig?.lastSyncedAt
                 ? new Date(client.driveConfig.lastSyncedAt).toLocaleString()
                 : "Not configured"}
@@ -198,10 +223,12 @@ export default function AdminClientDetailPage() {
       </div>
 
       {/* Reports Table */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-100">
-          <h2 className="text-base font-semibold text-gray-800">Reports ({reports.length})</h2>
-          <p className="text-xs text-gray-400 mt-0.5">Publish a report to make it visible to the client.</p>
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+          <div>
+            <h2 className="text-base font-semibold text-gray-800">Reports <span className="text-gray-400 font-normal">({reports.length})</span></h2>
+            <p className="text-xs text-gray-400 mt-0.5">Publish a report to make it visible to the client.</p>
+          </div>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
@@ -324,61 +351,78 @@ export default function AdminClientDetailPage() {
 
       {/* Edit Client Modal */}
       {editOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md mx-4 p-6 space-y-5">
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg font-bold text-gray-900">Edit Client</h2>
-              <button onClick={() => setEditOpen(false)} className="text-gray-400 hover:text-gray-700 text-xl leading-none">×</button>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md">
+            <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
+              <div>
+                <h2 className="text-lg font-bold text-gray-900">Edit Client</h2>
+                <p className="text-xs text-gray-400 mt-0.5">Update client information</p>
+              </div>
+              <button
+                onClick={() => setEditOpen(false)}
+                className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
             </div>
 
-            <div className="space-y-4">
+            <div className="px-6 py-5 space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Client Name <span className="text-red-400">*</span></label>
                 <input
                   type="text"
                   value={editForm.name}
                   onChange={(e) => setEditForm((f) => ({ ...f, name: e.target.value }))}
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-gray-50 hover:bg-white transition-colors"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Industry</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Industry</label>
                 <input
                   type="text"
                   value={editForm.industry}
                   onChange={(e) => setEditForm((f) => ({ ...f, industry: e.target.value }))}
                   placeholder="e.g. Technology, Healthcare…"
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-gray-50 hover:bg-white transition-colors"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Contact Email</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Contact Email</label>
                 <input
                   type="email"
                   value={editForm.contactEmail}
                   onChange={(e) => setEditForm((f) => ({ ...f, contactEmail: e.target.value }))}
                   placeholder="contact@client.com"
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-gray-50 hover:bg-white transition-colors"
                 />
               </div>
-            </div>
 
-            {editError && <p className="text-sm text-red-600">{editError}</p>}
+              {editError && (
+                <div className="flex items-center gap-2 text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl px-4 py-3">
+                  <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  {editError}
+                </div>
+              )}
 
-            <div className="flex gap-3 justify-end pt-1">
-              <button
-                onClick={() => setEditOpen(false)}
-                className="px-4 py-2 text-sm font-medium text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-50"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={saveEdit}
-                disabled={editSaving || !editForm.name.trim()}
-                className="px-4 py-2 text-sm font-medium bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-60 transition-colors"
-              >
-                {editSaving ? "Saving…" : "Save Changes"}
-              </button>
+              <div className="flex gap-3 pt-1">
+                <button
+                  onClick={() => setEditOpen(false)}
+                  className="flex-1 px-4 py-2.5 text-sm font-medium text-gray-700 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={saveEdit}
+                  disabled={editSaving || !editForm.name.trim()}
+                  className="flex-1 px-4 py-2.5 text-sm font-semibold bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 disabled:opacity-60 transition-colors shadow-sm"
+                >
+                  {editSaving ? "Saving…" : "Save Changes"}
+                </button>
+              </div>
             </div>
           </div>
         </div>

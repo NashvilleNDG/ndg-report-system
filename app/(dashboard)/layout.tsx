@@ -13,10 +13,16 @@ export default async function DashboardLayout({
 
   return (
     <div className="flex h-screen overflow-hidden bg-gray-50">
-      <div className="no-print"><Sidebar role={session.user.role} /></div>
-      <div className="flex flex-1 flex-col overflow-hidden">
-        <div className="no-print"><Topbar user={session.user} /></div>
-        <main className="flex-1 overflow-y-auto p-6">{children}</main>
+      <div className="no-print">
+        <Sidebar role={session.user.role} />
+      </div>
+      <div className="flex flex-1 flex-col overflow-hidden min-w-0">
+        <div className="no-print">
+          <Topbar user={session.user} />
+        </div>
+        <main className="flex-1 overflow-y-auto p-6 lg:p-8">
+          {children}
+        </main>
       </div>
     </div>
   );

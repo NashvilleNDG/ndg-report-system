@@ -20,51 +20,70 @@ export default async function ClientReportsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Reports</h1>
-        <p className="text-sm text-gray-500 mt-1">All your published monthly reports.</p>
+        <h1 className="text-2xl font-bold text-gray-900">Past Reports</h1>
+        <p className="text-sm text-gray-500 mt-0.5">
+          {reports.length > 0 ? `${reports.length} published report${reports.length !== 1 ? "s" : ""} available` : "Your monthly marketing performance reports"}
+        </p>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-        {reports.length === 0 ? (
-          <div className="px-6 py-12 text-center text-gray-400">
-            <div className="text-4xl mb-3">📭</div>
-            <p className="font-medium">No published reports yet.</p>
-            <p className="text-sm mt-1">Reports will appear here once they're published.</p>
+      {reports.length === 0 ? (
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-16 text-center">
+          <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <svg className="w-8 h-8 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
           </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-gray-50">
-                <tr>
-                  {["Period", "Published", "Actions"].map((h) => (
-                    <th key={h} className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                      {h}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-50">
-                {reports.map((r) => (
-                  <tr key={r.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-6 py-4 font-medium text-gray-900">{periodLabel(r.period)}</td>
-                    <td className="px-6 py-4 text-gray-500">
-                      {r.publishedAt ? new Date(r.publishedAt).toLocaleDateString() : "—"}
-                    </td>
-                    <td className="px-6 py-4">
-                      <Link
-                        href={`/client/reports/${r.period}`}
-                        className="inline-flex items-center gap-1 text-indigo-600 hover:text-indigo-800 font-medium text-sm"
-                      >
-                        View Report →
-                      </Link>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
+          <p className="font-semibold text-gray-700">No reports published yet</p>
+          <p className="text-sm text-gray-400 mt-1">Reports will appear here once they&apos;re ready.</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {reports.map((r, i) => {
+            const isLatest = i === 0;
+            return (
+              <Link
+                key={r.id}
+                href={`/client/reports/${r.period}`}
+                className={`group bg-white rounded-2xl border shadow-sm p-5 hover:shadow-md transition-all duration-200 flex flex-col gap-4 ${
+                  isLatest ? "border-indigo-200 ring-1 ring-indigo-100" : "border-gray-100 hover:border-gray-200"
+                }`}
+              >
+                {/* Period Header */}
+                <div className="flex items-start justify-between gap-2">
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${isLatest ? "bg-indigo-600" : "bg-gray-100"}`}>
+                    <svg className={`w-5 h-5 ${isLatest ? "text-white" : "text-gray-400"}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
+                  </div>
+                  {isLatest && (
+                    <span className="bg-indigo-100 text-indigo-700 text-xs font-semibold px-2.5 py-1 rounded-full border border-indigo-200">
+                      Latest
+                    </span>
+                  )}
+                </div>
+
+                {/* Period Name */}
+                <div>
+                  <h3 className={`text-base font-bold ${isLatest ? "text-indigo-900" : "text-gray-800"} group-hover:text-indigo-700 transition-colors`}>
+                    {periodLabel(r.period)}
+                  </h3>
+                  <p className="text-xs text-gray-400 mt-1">
+                    Published: {r.publishedAt ? new Date(r.publishedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "—"}
+                  </p>
+                </div>
+
+                {/* CTA */}
+                <div className={`flex items-center gap-1.5 text-sm font-semibold mt-auto ${isLatest ? "text-indigo-600" : "text-gray-500 group-hover:text-indigo-600"} transition-colors`}>
+                  View Report
+                  <svg className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                  </svg>
+                </div>
+              </Link>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }

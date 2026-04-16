@@ -16,10 +16,16 @@ interface Client {
   name: string;
 }
 
-const ROLE_COLORS = {
-  ADMIN: "bg-purple-100 text-purple-700",
-  TEAM: "bg-blue-100 text-blue-700",
-  CLIENT: "bg-green-100 text-green-700",
+const ROLE_STYLES = {
+  ADMIN: "bg-violet-100 text-violet-700 border border-violet-200",
+  TEAM: "bg-sky-100 text-sky-700 border border-sky-200",
+  CLIENT: "bg-emerald-100 text-emerald-700 border border-emerald-200",
+};
+
+const ROLE_AVATAR = {
+  ADMIN: "from-violet-400 to-purple-600",
+  TEAM: "from-sky-400 to-blue-500",
+  CLIENT: "from-emerald-400 to-teal-500",
 };
 
 function UserModal({
@@ -57,7 +63,7 @@ function UserModal({
         body.password = form.password;
       }
       if (form.role === "CLIENT" && form.clientId) body.clientId = form.clientId;
-      else if (form.role !== "CLIENT") body.clientId = ""; // clear if not client
+      else if (form.role !== "CLIENT") body.clientId = "";
 
       const url = mode === "create" ? "/api/users" : `/api/users/${user!.id}`;
       const method = mode === "create" ? "POST" : "PUT";
@@ -81,85 +87,105 @@ function UserModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md mx-4 p-6">
-        <div className="flex items-center justify-between mb-5">
-          <h2 className="text-lg font-semibold text-gray-900">{mode === "create" ? "New User" : "Edit User"}</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">✕</button>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md">
+        <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
+          <div>
+            <h2 className="text-lg font-bold text-gray-900">{mode === "create" ? "New User" : "Edit User"}</h2>
+            <p className="text-xs text-gray-400 mt-0.5">{mode === "create" ? "Create a new user account" : "Update user details"}</p>
+          </div>
+          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors">
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
         </div>
-        {error && (
-          <div className="mb-4 rounded-lg bg-red-50 border border-red-200 text-red-700 px-4 py-3 text-sm">{error}</div>
-        )}
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
-            <input
-              type="text"
-              required
-              value={form.name}
-              onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-            <input
-              type="email"
-              required
-              value={form.email}
-              onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Password {mode === "edit" && <span className="text-gray-400 font-normal">(leave blank to keep current)</span>}
-            </label>
-            <input
-              type="password"
-              required={mode === "create"}
-              value={form.password}
-              onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
-              placeholder={mode === "edit" ? "Leave blank to keep unchanged" : ""}
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
-            <select
-              value={form.role}
-              onChange={(e) => setForm((f) => ({ ...f, role: e.target.value as "ADMIN" | "TEAM" | "CLIENT", clientId: "" }))}
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            >
-              <option value="ADMIN">ADMIN</option>
-              <option value="TEAM">TEAM</option>
-              <option value="CLIENT">CLIENT</option>
-            </select>
-          </div>
-          {form.role === "CLIENT" && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Client</label>
-              <select
-                value={form.clientId}
-                onChange={(e) => setForm((f) => ({ ...f, clientId: e.target.value }))}
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              >
-                <option value="">— Select Client —</option>
-                {clients.map((c) => (
-                  <option key={c.id} value={c.id}>{c.name}</option>
-                ))}
-              </select>
+        <div className="px-6 py-5">
+          {error && (
+            <div className="mb-4 rounded-xl bg-red-50 border border-red-200 text-red-700 px-4 py-3 text-sm flex items-center gap-2">
+              <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              {error}
             </div>
           )}
-          <div className="flex gap-3 pt-2">
-            <button type="button" onClick={onClose} className="flex-1 border border-gray-200 text-gray-600 rounded-lg py-2 text-sm font-medium hover:bg-gray-50">
-              Cancel
-            </button>
-            <button type="submit" disabled={loading} className="flex-1 bg-indigo-600 text-white rounded-lg py-2 text-sm font-medium hover:bg-indigo-700 disabled:opacity-60">
-              {loading ? "Saving…" : mode === "create" ? "Create User" : "Save Changes"}
-            </button>
-          </div>
-        </form>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Full Name <span className="text-red-400">*</span></label>
+              <input
+                type="text"
+                required
+                value={form.name}
+                onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+                className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-gray-50 hover:bg-white transition-colors"
+                placeholder="John Smith"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Email Address <span className="text-red-400">*</span></label>
+              <input
+                type="email"
+                required
+                value={form.email}
+                onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
+                className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-gray-50 hover:bg-white transition-colors"
+                placeholder="john@example.com"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                Password{" "}
+                {mode === "edit" && (
+                  <span className="text-gray-400 font-normal text-xs">(leave blank to keep current)</span>
+                )}
+                {mode === "create" && <span className="text-red-400">*</span>}
+              </label>
+              <input
+                type="password"
+                required={mode === "create"}
+                value={form.password}
+                onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
+                placeholder={mode === "edit" ? "Leave blank to keep unchanged" : "Min. 6 characters"}
+                className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-gray-50 hover:bg-white transition-colors"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Role</label>
+              <select
+                value={form.role}
+                onChange={(e) => setForm((f) => ({ ...f, role: e.target.value as "ADMIN" | "TEAM" | "CLIENT", clientId: "" }))}
+                className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-gray-50 hover:bg-white transition-colors"
+              >
+                <option value="ADMIN">Administrator</option>
+                <option value="TEAM">Team Member</option>
+                <option value="CLIENT">Client</option>
+              </select>
+            </div>
+            {form.role === "CLIENT" && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Assign to Client</label>
+                <select
+                  value={form.clientId}
+                  onChange={(e) => setForm((f) => ({ ...f, clientId: e.target.value }))}
+                  className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-gray-50 hover:bg-white transition-colors"
+                >
+                  <option value="">— Select Client —</option>
+                  {clients.map((c) => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+            <div className="flex gap-3 pt-2">
+              <button type="button" onClick={onClose} className="flex-1 border border-gray-200 text-gray-600 rounded-xl py-2.5 text-sm font-medium hover:bg-gray-50 transition-colors">
+                Cancel
+              </button>
+              <button type="submit" disabled={loading} className="flex-1 bg-indigo-600 text-white rounded-xl py-2.5 text-sm font-semibold hover:bg-indigo-700 disabled:opacity-60 transition-colors shadow-sm">
+                {loading ? "Saving…" : mode === "create" ? "Create User" : "Save Changes"}
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   );
@@ -183,7 +209,7 @@ export default function AdminUsersPage() {
   useEffect(() => { fetchAll(); }, []);
 
   const handleDelete = async (userId: string) => {
-    if (!confirm("Are you sure you want to delete this user?")) return;
+    if (!confirm("Are you sure you want to delete this user? This cannot be undone.")) return;
     setDeletingId(userId);
     await fetch(`/api/users/${userId}`, { method: "DELETE" });
     setDeletingId(null);
@@ -194,58 +220,81 @@ export default function AdminUsersPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      {/* Header */}
+      <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Users</h1>
-          <p className="text-sm text-gray-500 mt-1">{users.length} user{users.length !== 1 ? "s" : ""}</p>
+          <p className="text-sm text-gray-500 mt-0.5">{users.length} user{users.length !== 1 ? "s" : ""} in the system</p>
         </div>
         <button
           onClick={() => setModal({ mode: "create" })}
-          className="inline-flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors"
+          className="inline-flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-xl text-sm font-semibold hover:bg-indigo-700 transition-colors shadow-sm"
         >
-          <span>+</span> New User
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+          </svg>
+          New User
         </button>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+      {/* Table */}
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="bg-gray-50">
-              <tr>
-                {["Name", "Email", "Role", "Client", "Actions"].map((h) => (
-                  <th key={h} className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">{h}</th>
+            <thead>
+              <tr className="bg-gray-50/80 border-b border-gray-100">
+                {["User", "Email", "Role", "Client", "Joined", ""].map((h) => (
+                  <th key={h} className="px-6 py-3.5 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
               {loading ? (
-                <tr><td colSpan={5} className="px-6 py-10 text-center text-gray-400">Loading…</td></tr>
+                <tr><td colSpan={6} className="px-6 py-12 text-center">
+                  <div className="flex flex-col items-center gap-2">
+                    <svg className="w-6 h-6 text-gray-300 animate-spin" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                    </svg>
+                    <span className="text-gray-400 text-sm">Loading users…</span>
+                  </div>
+                </td></tr>
               ) : users.length === 0 ? (
-                <tr><td colSpan={5} className="px-6 py-10 text-center text-gray-400">No users found.</td></tr>
+                <tr><td colSpan={6} className="px-6 py-12 text-center text-gray-400">No users found.</td></tr>
               ) : users.map((u) => (
-                <tr key={u.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-6 py-4 font-medium text-gray-900">{u.name}</td>
+                <tr key={u.id} className="hover:bg-gray-50/70 transition-colors">
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-9 h-9 bg-gradient-to-br ${ROLE_AVATAR[u.role] ?? "from-gray-400 to-gray-600"} rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm`}>
+                        <span className="text-white font-bold text-sm">{u.name.charAt(0).toUpperCase()}</span>
+                      </div>
+                      <span className="font-semibold text-gray-900">{u.name}</span>
+                    </div>
+                  </td>
                   <td className="px-6 py-4 text-gray-500">{u.email}</td>
                   <td className="px-6 py-4">
-                    <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${ROLE_COLORS[u.role]}`}>{u.role}</span>
+                    <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${ROLE_STYLES[u.role]}`}>{u.role}</span>
                   </td>
                   <td className="px-6 py-4 text-gray-500">
                     {u.clientId ? (clientMap[u.clientId] ?? u.clientId) : "—"}
                   </td>
+                  <td className="px-6 py-4 text-gray-400 text-xs">
+                    {new Date(u.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                  </td>
                   <td className="px-6 py-4">
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2">
                       <button
                         onClick={() => setModal({ mode: "edit", user: u })}
-                        className="text-indigo-600 hover:text-indigo-800 text-xs font-medium"
+                        className="inline-flex items-center gap-1 text-xs font-semibold text-indigo-600 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-lg transition-colors"
                       >
                         Edit
                       </button>
                       <button
                         onClick={() => handleDelete(u.id)}
                         disabled={deletingId === u.id}
-                        className="text-red-500 hover:text-red-700 text-xs font-medium disabled:opacity-50"
+                        className="inline-flex items-center gap-1 text-xs font-semibold text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
                       >
-                        {deletingId === u.id ? "Deleting…" : "Delete"}
+                        {deletingId === u.id ? "…" : "Delete"}
                       </button>
                     </div>
                   </td>

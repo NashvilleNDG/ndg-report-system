@@ -23,67 +23,111 @@ export default function TeamDashboardPage() {
 
   const activeClients = clients.filter((c) => c.isActive);
 
+  // Format selected month for display
+  const displayMonth = (() => {
+    if (!selectedMonth) return "";
+    const [year, month] = selectedMonth.split("-");
+    return new Date(parseInt(year), parseInt(month) - 1, 1).toLocaleDateString("en-US", { month: "long", year: "numeric" });
+  })();
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between flex-wrap gap-4">
+      {/* Header */}
+      <div className="flex items-start justify-between flex-wrap gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Team Dashboard</h1>
-          <p className="text-sm text-gray-500 mt-1">Select a client to enter or upload report data.</p>
+          <p className="text-sm text-gray-500 mt-0.5">Select a reporting period, then enter data for each client.</p>
         </div>
-        <div className="flex items-center gap-3 flex-wrap">
-          {/* Month Picker */}
-          <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-lg px-3 py-1.5 shadow-sm">
-            <label className="text-sm font-medium text-gray-600">Month:</label>
+        <Link
+          href="/team/upload"
+          className="inline-flex items-center gap-2 bg-white border border-gray-200 text-gray-700 px-4 py-2 rounded-xl text-sm font-medium hover:bg-gray-50 transition-colors shadow-sm"
+        >
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+          </svg>
+          Upload Excel / Drive
+        </Link>
+      </div>
+
+      {/* Period Selector */}
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+        <div className="flex items-center justify-between flex-wrap gap-4">
+          <div>
+            <p className="text-sm font-semibold text-gray-700">Reporting Period</p>
+            <p className="text-xs text-gray-400 mt-0.5">Data will be entered for: <span className="font-medium text-gray-600">{displayMonth}</span></p>
+          </div>
+          <div className="flex items-center gap-3">
+            <label className="text-sm font-medium text-gray-600">Select Month:</label>
             <input
               type="month"
               value={selectedMonth}
               onChange={(e) => setSelectedMonth(e.target.value)}
-              className="text-sm text-gray-900 focus:outline-none"
+              className="border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-gray-50 hover:bg-white transition-colors"
             />
           </div>
-          <Link
-            href="/team/upload"
-            className="inline-flex items-center gap-2 bg-white border border-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors shadow-sm"
-          >
-            <span>📤</span> Upload Excel / Drive
-          </Link>
         </div>
       </div>
 
+      {/* Client Cards */}
       {activeClients.length === 0 ? (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-12 text-center text-gray-400">
-          No active clients found.
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-16 text-center">
+          <svg className="w-12 h-12 text-gray-200 mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+          <p className="text-gray-400 font-medium">No active clients found.</p>
+          <p className="text-xs text-gray-300 mt-1">Ask an admin to add and activate clients.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {activeClients.map((client) => (
-            <div
-              key={client.id}
-              className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 flex flex-col gap-4 hover:shadow-md transition-shadow"
-            >
-              <div className="flex-1">
-                <h2 className="text-base font-semibold text-gray-900">{client.name}</h2>
-                {client.industry && (
-                  <p className="text-sm text-gray-400 mt-0.5">{client.industry}</p>
-                )}
+        <>
+          <div className="flex items-center gap-2 text-xs text-gray-400">
+            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            {activeClients.length} active client{activeClients.length !== 1 ? "s" : ""} — click &ldquo;Enter Data&rdquo; to add {displayMonth} data
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {activeClients.map((client) => (
+              <div
+                key={client.id}
+                className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 flex flex-col gap-4 hover:shadow-md hover:border-gray-200 transition-all duration-200 group"
+              >
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 bg-gradient-to-br from-indigo-400 to-blue-500 rounded-xl flex items-center justify-center flex-shrink-0 shadow-md shadow-indigo-200 group-hover:shadow-indigo-300 transition-shadow">
+                    <span className="text-white font-black text-sm">{client.name.charAt(0)}</span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h2 className="text-sm font-bold text-gray-900 truncate">{client.name}</h2>
+                    {client.industry && (
+                      <p className="text-xs text-gray-400 mt-0.5 truncate">{client.industry}</p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="text-xs text-gray-400 flex items-center gap-1.5">
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                  Period: <span className="font-medium text-gray-600">{displayMonth}</span>
+                </div>
+
+                <div className="flex gap-2 pt-1 border-t border-gray-50">
+                  <Link
+                    href={`/team/entry/${client.id}/${selectedMonth}`}
+                    className="flex-1 text-center bg-indigo-600 text-white py-2.5 rounded-xl text-sm font-semibold hover:bg-indigo-700 transition-colors shadow-sm"
+                  >
+                    Enter Data
+                  </Link>
+                  <Link
+                    href="/team/upload"
+                    className="flex-1 text-center bg-gray-100 text-gray-600 py-2.5 rounded-xl text-sm font-semibold hover:bg-gray-200 transition-colors"
+                  >
+                    Upload
+                  </Link>
+                </div>
               </div>
-              <div className="flex gap-2">
-                <Link
-                  href={`/team/entry/${client.id}/${selectedMonth}`}
-                  className="flex-1 text-center bg-indigo-600 text-white py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors"
-                >
-                  Enter Data
-                </Link>
-                <Link
-                  href="/team/upload"
-                  className="flex-1 text-center bg-gray-100 text-gray-700 py-2 rounded-lg text-sm font-medium hover:bg-gray-200 transition-colors"
-                >
-                  Upload
-                </Link>
-              </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        </>
       )}
     </div>
   );
