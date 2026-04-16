@@ -242,7 +242,7 @@ export default async function AdminOverviewPage() {
               <div className="px-6 py-10 text-center text-gray-400 text-sm">No active clients.</div>
             ) : allActiveClients.map((client) => {
               const report = client.reports[0];
-              const status = report?.status ?? "MISSING";
+              const status: "DRAFT" | "PUBLISHED" | "MISSING" = report?.status ?? "MISSING";
               const statusConfig = {
                 PUBLISHED: { label: "Published", bg: "bg-emerald-50 text-emerald-700 border-emerald-200", dot: "bg-emerald-500" },
                 DRAFT:     { label: "Draft",     bg: "bg-amber-50 text-amber-700 border-amber-200",    dot: "bg-amber-400" },
@@ -265,7 +265,7 @@ export default async function AdminOverviewPage() {
                       <span className={`w-1.5 h-1.5 rounded-full ${statusConfig?.dot}`} />
                       {statusConfig?.label}
                     </span>
-                    {status === "MISSING" ? (
+                    {!report ? (
                       <Link
                         href={`/team/entry/${client.id}/${period}`}
                         className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-lg transition-colors whitespace-nowrap"
