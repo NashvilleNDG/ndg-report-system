@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { SkeletonTable } from "@/components/ui/Skeleton";
 
 interface User {
   id: string;
@@ -219,7 +220,7 @@ export default function AdminUsersPage() {
   const clientMap = Object.fromEntries(clients.map((c) => [c.id, c.name]));
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 page-content">
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
@@ -250,15 +251,7 @@ export default function AdminUsersPage() {
             </thead>
             <tbody className="divide-y divide-gray-50">
               {loading ? (
-                <tr><td colSpan={6} className="px-6 py-12 text-center">
-                  <div className="flex flex-col items-center gap-2">
-                    <svg className="w-6 h-6 text-gray-300 animate-spin" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                    </svg>
-                    <span className="text-gray-400 text-sm">Loading users…</span>
-                  </div>
-                </td></tr>
+                <SkeletonTable rows={4} cols={6} />
               ) : users.length === 0 ? (
                 <tr><td colSpan={6} className="px-6 py-12 text-center text-gray-400">No users found.</td></tr>
               ) : users.map((u) => (

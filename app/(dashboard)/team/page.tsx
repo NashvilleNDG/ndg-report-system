@@ -31,7 +31,7 @@ export default function TeamDashboardPage() {
   })();
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 page-content">
       {/* Header */}
       <div className="flex items-start justify-between flex-wrap gap-4">
         <div>
@@ -85,11 +85,11 @@ export default function TeamDashboardPage() {
             </svg>
             {activeClients.length} active client{activeClients.length !== 1 ? "s" : ""} — click &ldquo;Enter Data&rdquo; to add {displayMonth} data
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 stagger-children">
             {activeClients.map((client) => (
               <div
                 key={client.id}
-                className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 flex flex-col gap-4 hover:shadow-md hover:border-gray-200 transition-all duration-200 group"
+                className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 flex flex-col gap-4 hover:shadow-lg hover:border-gray-200 hover:-translate-y-1 transition-all duration-300 group"
               >
                 <div className="flex items-start gap-3">
                   <div className="w-10 h-10 bg-gradient-to-br from-indigo-400 to-blue-500 rounded-xl flex items-center justify-center flex-shrink-0 shadow-md shadow-indigo-200 group-hover:shadow-indigo-300 transition-shadow">

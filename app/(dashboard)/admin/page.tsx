@@ -71,7 +71,7 @@ export default async function AdminOverviewPage() {
   ];
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 page-content">
       {/* Page Header */}
       <div className="flex items-start justify-between">
         <div>
@@ -92,11 +92,11 @@ export default async function AdminOverviewPage() {
       </div>
 
       {/* Stat Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 stagger-children">
         {stats.map((s) => (
           <div
             key={s.label}
-            className={`bg-white rounded-2xl border ${s.border} shadow-sm p-6`}
+            className={`bg-white rounded-2xl border ${s.border} shadow-sm p-6 hover-lift cursor-default`}
           >
             <div className="flex items-center justify-between mb-4">
               <p className="text-sm font-medium text-gray-500">{s.label}</p>
@@ -210,7 +210,7 @@ export default async function AdminOverviewPage() {
       </div>
 
       {/* Quick Links */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 stagger-children">
         {[
           { href: "/admin/clients", label: "Manage Clients", desc: "Add, edit, or view client details", icon: "👥" },
           { href: "/admin/users", label: "Manage Users", desc: "Create and manage user accounts", icon: "🔑" },
@@ -219,7 +219,7 @@ export default async function AdminOverviewPage() {
           <Link
             key={item.href}
             href={item.href}
-            className="group flex items-center gap-4 bg-white rounded-2xl border border-gray-100 p-5 hover:border-indigo-200 hover:shadow-md transition-all duration-200"
+            className="group flex items-center gap-4 bg-white rounded-2xl border border-gray-100 p-5 hover:border-indigo-200 hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
           >
             <span className="text-2xl">{item.icon}</span>
             <div className="flex-1 min-w-0">

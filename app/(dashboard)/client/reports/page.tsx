@@ -18,7 +18,7 @@ export default async function ClientReportsPage() {
   });
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 page-content">
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Past Reports</h1>
         <p className="text-sm text-gray-500 mt-0.5">
@@ -37,7 +37,7 @@ export default async function ClientReportsPage() {
           <p className="text-sm text-gray-400 mt-1">Reports will appear here once they&apos;re ready.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 stagger-children">
           {reports.map((r, i) => {
             const isLatest = i === 0;
             return (

@@ -8,18 +8,18 @@ interface StatCardProps {
 
 export default function StatCard({ label, value, change, positive, icon }: StatCardProps) {
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 flex flex-col gap-2">
+    <div className="bg-white rounded-xl border border-gray-100 p-4 flex flex-col gap-2 transition-all duration-200 hover:shadow-md hover:-translate-y-0.5">
       <div className="flex items-center justify-between">
-        <span className="text-sm font-medium text-gray-500">{label}</span>
-        {icon && <span className="text-2xl">{icon}</span>}
+        <span className="text-xs font-semibold text-gray-400 uppercase tracking-wide">{label}</span>
+        {icon && <span className="text-lg leading-none">{icon}</span>}
       </div>
-      <div className="text-3xl font-bold text-gray-900 tracking-tight">{value}</div>
+      <div className="text-2xl font-bold text-gray-900 tracking-tight tabular-nums">{value}</div>
       {change !== undefined && (
         <div
-          className={`inline-flex items-center gap-1 text-sm font-medium px-2 py-0.5 rounded-full w-fit ${
+          className={`inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full w-fit ${
             positive
-              ? "bg-green-50 text-green-700"
-              : "bg-red-50 text-red-700"
+              ? "bg-emerald-50 text-emerald-700 border border-emerald-100"
+              : "bg-red-50 text-red-700 border border-red-100"
           }`}
         >
           <span>{positive ? "▲" : "▼"}</span>

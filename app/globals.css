@@ -4,11 +4,276 @@
   --font-sans: var(--font-inter);
 }
 
+/* ============================================================
+   DESIGN SYSTEM — NDG Reports (2025 Design Trends)
+   Based on: UX Design Specialist Agent recommendations
+   - Micro-animations with cubic-bezier easing
+   - Skeleton loading (shimmer)
+   - Glass morphism utilities
+   - 8-point spacing system
+   - Smooth page transitions
+   - Custom scrollbars
+   ============================================================ */
+
+/* ---------- CSS Custom Properties ---------- */
+:root {
+  /* Spacing (8-point grid) */
+  --space-1: 0.5rem;   /* 8px  */
+  --space-2: 1rem;     /* 16px */
+  --space-3: 1.5rem;   /* 24px */
+  --space-4: 2rem;     /* 32px */
+  --space-6: 3rem;     /* 48px */
+  --space-8: 4rem;     /* 64px */
+
+  /* Brand palette */
+  --color-primary:     #4f46e5;
+  --color-primary-hover: #4338ca;
+  --color-surface:     #ffffff;
+  --color-surface-2:   #f8fafc;
+  --color-border:      #e8edf3;
+  --color-text:        #111827;
+  --color-text-muted:  #6b7280;
+
+  /* Easing */
+  --ease-standard:  cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-decel:     cubic-bezier(0, 0, 0.2, 1);
+  --ease-accel:     cubic-bezier(0.4, 0, 1, 1);
+  --ease-spring:    cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* Shadows */
+  --shadow-sm:   0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md:   0 4px 16px rgba(0,0,0,0.08), 0 2px 6px rgba(0,0,0,0.04);
+  --shadow-lg:   0 12px 40px rgba(0,0,0,0.12), 0 4px 12px rgba(0,0,0,0.06);
+  --shadow-xl:   0 24px 64px rgba(0,0,0,0.16), 0 8px 24px rgba(0,0,0,0.08);
+  --shadow-glow: 0 0 0 4px rgba(79, 70, 229, 0.12);
+
+  /* Radii */
+  --radius-sm:  8px;
+  --radius-md:  12px;
+  --radius-lg:  16px;
+  --radius-xl:  24px;
+  --radius-2xl: 32px;
+}
+
+/* ---------- Base Styles ---------- */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+body {
+  font-size: 15px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* ---------- Custom Scrollbars ---------- */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 99px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+/* Sidebar scrollbar (dark) */
+aside ::-webkit-scrollbar-thumb {
+  background: #374151;
+}
+aside ::-webkit-scrollbar-thumb:hover {
+  background: #4b5563;
+}
+
+/* ---------- Skeleton / Shimmer Loading ---------- */
+@keyframes shimmer {
+  0%   { background-position: -800px 0; }
+  100% { background-position:  800px 0; }
+}
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    #f0f4f8 0%,
+    #e2e8f0 40%,
+    #f0f4f8 80%
+  );
+  background-size: 800px 100%;
+  animation: shimmer 1.6s infinite linear;
+  border-radius: var(--radius-md);
+}
+
+.skeleton-text {
+  height: 14px;
+  margin-bottom: 8px;
+  border-radius: 6px;
+}
+
+.skeleton-text.lg { height: 20px; }
+.skeleton-text.sm { height: 10px; }
+.skeleton-circle  { border-radius: 50%; }
+.skeleton-rect    { border-radius: var(--radius-md); }
+
+/* ---------- Page Entry Animation ---------- */
+@keyframes fadeSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.page-content {
+  animation: fadeSlideUp 0.45s var(--ease-decel);
+}
+
+/* ---------- Micro-animations ---------- */
+/* Lift cards / buttons on hover */
+.hover-lift {
+  transition: transform 0.25s var(--ease-standard),
+              box-shadow 0.25s var(--ease-standard);
+}
+.hover-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Spring pop (for icon buttons, badges) */
+.hover-pop {
+  transition: transform 0.2s var(--ease-spring);
+}
+.hover-pop:hover {
+  transform: scale(1.08);
+}
+
+/* Animated button (primary CTA) */
+.btn-animated {
+  transition: transform 0.25s var(--ease-standard),
+              box-shadow 0.25s var(--ease-standard),
+              background-color 0.2s var(--ease-standard);
+}
+.btn-animated:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(79,70,229,0.35);
+}
+.btn-animated:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(79,70,229,0.2);
+}
+
+/* ---------- Glassmorphism ---------- */
+.glass {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+}
+
+.glass-light {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+}
+
+.glass-dark {
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+/* ---------- Gradient Mesh Background ---------- */
+.mesh-gradient {
+  background:
+    radial-gradient(at 20% 20%, hsla(230, 100%, 65%, 0.8) 0px, transparent 50%),
+    radial-gradient(at 80% 10%, hsla(280, 90%, 65%, 0.6) 0px, transparent 50%),
+    radial-gradient(at 10% 80%, hsla(200, 100%, 55%, 0.5) 0px, transparent 50%),
+    radial-gradient(at 90% 80%, hsla(310, 80%, 60%, 0.5) 0px, transparent 50%),
+    radial-gradient(at 50% 50%, hsla(240, 80%, 20%, 1) 0px, transparent 70%);
+  background-color: #0f0c29;
+}
+
+/* ---------- Gradient Mesh (subtle, light) ---------- */
+.mesh-gradient-subtle {
+  background:
+    radial-gradient(at 10% 20%, hsla(230, 80%, 96%, 1) 0px, transparent 60%),
+    radial-gradient(at 90% 80%, hsla(270, 70%, 96%, 1) 0px, transparent 60%),
+    radial-gradient(at 80% 10%, hsla(200, 80%, 97%, 1) 0px, transparent 50%);
+  background-color: #f8faff;
+}
+
+/* ---------- Notification / Toast entry ---------- */
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(100px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+.toast {
+  animation: slideInRight 0.35s var(--ease-decel);
+}
+
+/* ---------- Stagger children animation ---------- */
+.stagger-children > * {
+  animation: fadeSlideUp 0.4s var(--ease-decel) both;
+}
+.stagger-children > *:nth-child(1) { animation-delay: 0ms; }
+.stagger-children > *:nth-child(2) { animation-delay: 60ms; }
+.stagger-children > *:nth-child(3) { animation-delay: 120ms; }
+.stagger-children > *:nth-child(4) { animation-delay: 180ms; }
+.stagger-children > *:nth-child(5) { animation-delay: 240ms; }
+.stagger-children > *:nth-child(6) { animation-delay: 300ms; }
+
+/* ---------- Pulse glow (for status indicators) ---------- */
+@keyframes pulseGlow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.5); }
+  50%       { box-shadow: 0 0 0 6px rgba(52, 211, 153, 0); }
+}
+.pulse-glow {
+  animation: pulseGlow 2s ease-in-out infinite;
+}
+
+/* ---------- Focus ring (accessibility) ---------- */
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* ---------- Reduced motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ---------- Print styles ---------- */
 @media print {
   .no-print {
     display: none !important;
   }
   body {
     background: white !important;
+    font-size: 12pt;
+  }
+  .glass, .glass-light {
+    background: white !important;
+    backdrop-filter: none !important;
+    box-shadow: none !important;
+    border: 1px solid #ddd !important;
   }
 }

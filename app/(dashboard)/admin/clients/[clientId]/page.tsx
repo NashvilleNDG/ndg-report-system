@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { periodLabel } from "@/lib/report-utils";
+import { SkeletonTable } from "@/components/ui/Skeleton";
 
 interface Report {
   id: string;
@@ -158,7 +159,7 @@ export default function AdminClientDetailPage() {
   if (!client) return <div className="text-red-500 p-6">Client not found.</div>;
 
   return (
-    <div className="space-y-7">
+    <div className="space-y-7 page-content">
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-sm">
         <Link href="/admin/clients" className="text-gray-400 hover:text-indigo-600 transition-colors font-medium">Clients</Link>

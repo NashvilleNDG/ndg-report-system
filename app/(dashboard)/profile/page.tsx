@@ -79,7 +79,7 @@ export default function ProfilePage() {
   const roleStyle = me?.role ? (ROLE_STYLES[me.role] ?? "") : "";
 
   return (
-    <div className="max-w-2xl space-y-6">
+    <div className="max-w-2xl space-y-6 page-content">
       {/* Profile Hero Card */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
         {/* Banner */}
