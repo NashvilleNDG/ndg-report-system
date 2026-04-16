@@ -4,8 +4,7 @@
  * Uses pdfkit — pure Node.js, no browser or bundler issues.
  */
 
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const PDFDocument = require("pdfkit") as typeof import("pdfkit");
+import PDFDocument from "pdfkit";
 
 import { periodLabel } from "./report-utils";
 import type {
