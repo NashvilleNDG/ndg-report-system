@@ -132,11 +132,20 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: message }, { status: 502 });
   }
 
+  // Upsert all rows from the sheet
   const periods: string[] = [];
   for (const row of rows) {
     const period = await upsertReportRow(clientId, row);
     periods.push(period);
   }
+
+  // Delete any reports that exist in DB but are no longer in the sheet
+  const deleted = await prisma.report.deleteMany({
+    where: {
+      clientId,
+      period: { notIn: periods },
+    },
+  });
 
   const lastSyncedAt = new Date();
   await prisma.driveConfig.update({
@@ -144,5 +153,11 @@ export async function POST(req: NextRequest) {
     data: { syncStatus: "OK", syncError: null, lastSyncedAt },
   });
 
-  return NextResponse.json({ imported: periods.length, periodsUpserted: periods.length, periods, lastSyncedAt });
+  return NextResponse.json({
+    imported: periods.length,
+    periodsUpserted: periods.length,
+    deleted: deleted.count,
+    periods,
+    lastSyncedAt,
+  });
 }

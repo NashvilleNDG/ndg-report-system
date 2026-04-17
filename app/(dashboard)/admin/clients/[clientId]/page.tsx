@@ -64,7 +64,9 @@ export default function AdminClientDetailPage() {
       });
       const data = await res.json();
       if (res.ok) {
-        setSyncMsg({ type: "ok", text: `✓ Synced ${data.periodsUpserted ?? ""} period(s) successfully` });
+        const parts = [`✓ Synced ${data.periodsUpserted ?? 0} period(s)`];
+        if (data.deleted > 0) parts.push(`removed ${data.deleted} deleted`);
+        setSyncMsg({ type: "ok", text: parts.join(" · ") });
         await load(); // refresh reports list
       } else {
         setSyncMsg({ type: "err", text: data.error ?? "Sync failed" });
