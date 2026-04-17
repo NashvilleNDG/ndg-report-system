@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 
 // ── Icons ─────────────────────────────────────────────────────────────────────
@@ -97,33 +98,21 @@ export default function Sidebar({ role }: { role: string }) {
     >
 
       {/* ── Logo / Brand ──────────────────────────────────────────────────── */}
-      <div className="px-5 py-6 border-b" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
-        <div className="flex items-center gap-3">
-
-          {/* NDG monogram mark — clean flat square, crisp at any size */}
-          <div
-            className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 font-black text-white text-[15px] tracking-tight shadow-lg"
-            style={{
-              background: "linear-gradient(135deg, #00aeef 0%, #0070c0 50%, #5c3d9f 100%)",
-              letterSpacing: "-0.02em",
-            }}
-          >
-            NDG
-          </div>
-
-          {/* Company name */}
-          <div>
-            <p className="text-white font-bold text-[13.5px] leading-tight tracking-tight">
-              Nashville Digital
-            </p>
-            <p className="font-bold text-[13.5px] leading-tight tracking-tight" style={{ color: "#00aeef" }}>
-              Group
-            </p>
-          </div>
+      <div className="px-5 py-5 border-b" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
+        {/* Actual NDG logo image (transparent PNG on dark bg) */}
+        <div className="flex items-center justify-center">
+          <Image
+            src="/ndg-logo-transparent.png"
+            alt="Nashville Digital Group"
+            width={190}
+            height={70}
+            style={{ objectFit: "contain", maxHeight: 64 }}
+            priority
+          />
         </div>
 
         {/* App context tag */}
-        <div className="flex items-center gap-2 mt-3.5">
+        <div className="flex items-center gap-2 mt-3">
           <div className="h-px flex-1" style={{ background: "rgba(0,174,239,0.15)" }} />
           <span className="text-[9.5px] font-bold tracking-[0.2em] uppercase" style={{ color: "rgba(0,174,239,0.45)" }}>
             Reports Platform
@@ -215,15 +204,13 @@ export default function Sidebar({ role }: { role: string }) {
       <div className="px-4 py-4 border-t" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
         {/* Company tagline row */}
         <div className="flex items-center gap-2 mb-2">
-          <div
-            className="w-5 h-5 rounded-md flex items-center justify-center text-white font-black text-[8px] flex-shrink-0"
-            style={{ background: "linear-gradient(135deg, #00aeef, #5c3d9f)" }}
-          >
-            NDG
-          </div>
-          <p className="text-[11px] font-medium" style={{ color: "rgba(255,255,255,0.3)" }}>
-            Nashville Digital Group
-          </p>
+          <Image
+            src="/ndg-logo-transparent.png"
+            alt="Nashville Digital Group"
+            width={100}
+            height={36}
+            style={{ objectFit: "contain", maxHeight: 28, opacity: 0.5 }}
+          />
         </div>
         {/* Status */}
         <div className="flex items-center justify-between">
