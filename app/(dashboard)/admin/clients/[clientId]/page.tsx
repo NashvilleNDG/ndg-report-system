@@ -21,7 +21,7 @@ interface Client {
   industry: string | null;
   contactEmail: string | null;
   isActive: boolean;
-  driveConfig: { lastSyncedAt: string | null; syncStatus: string | null } | null;
+  driveConfig: { driveFileId: string; sheetName: string | null; lastSyncedAt: string | null; syncStatus: string | null } | null;
 }
 
 export default function AdminClientDetailPage() {
@@ -47,6 +47,11 @@ export default function AdminClientDetailPage() {
   // Drive sync state
   const [syncing, setSyncing] = useState(false);
   const [syncMsg, setSyncMsg] = useState<{ type: "ok" | "err"; text: string } | null>(null);
+
+  // Drive config form state
+  const [driveForm, setDriveForm] = useState({ driveFileId: "", sheetName: "" });
+  const [driveSaving, setDriveSaving] = useState(false);
+  const [driveConfigOpen, setDriveConfigOpen] = useState(false);
 
   const syncDrive = async () => {
     setSyncing(true);
@@ -91,9 +96,39 @@ export default function AdminClientDetailPage() {
       fetch(`/api/clients/${clientId}`),
       fetch(`/api/reports?clientId=${clientId}`),
     ]);
-    if (clientRes.ok) setClient(await clientRes.json());
+    if (clientRes.ok) {
+      const c = await clientRes.json();
+      setClient(c);
+      if (c.driveConfig) {
+        setDriveForm({ driveFileId: c.driveConfig.driveFileId ?? "", sheetName: c.driveConfig.sheetName ?? "" });
+      }
+    }
     if (reportsRes.ok) setReports(await reportsRes.json());
     setLoading(false);
+  };
+
+  const saveDriveConfig = async () => {
+    setDriveSaving(true);
+    setSyncMsg(null);
+    try {
+      const res = await fetch("/api/sync/drive/config", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ clientId, driveFileId: driveForm.driveFileId, sheetName: driveForm.sheetName || client?.slug }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setClient((prev) => prev ? { ...prev, driveConfig: data } : prev);
+        setDriveConfigOpen(false);
+        setSyncMsg({ type: "ok", text: "Drive configured! Click Sync Drive to import data." });
+      } else {
+        setSyncMsg({ type: "err", text: data.error ?? "Failed to save config" });
+      }
+    } catch {
+      setSyncMsg({ type: "err", text: "Network error" });
+    } finally {
+      setDriveSaving(false);
+    }
   };
 
   useEffect(() => { load(); }, [clientId]);
@@ -218,7 +253,7 @@ export default function AdminClientDetailPage() {
                 <span className={`w-1.5 h-1.5 rounded-full ${client.isActive ? "bg-emerald-400" : "bg-gray-400"}`} />
                 {client.isActive ? "Active" : "Inactive"}
               </span>
-              {client.driveConfig && (
+              {client.driveConfig ? (
                 <button
                   onClick={syncDrive}
                   disabled={syncing}
@@ -240,6 +275,16 @@ export default function AdminClientDetailPage() {
                       Sync Drive
                     </>
                   )}
+                </button>
+              ) : (
+                <button
+                  onClick={() => { setDriveForm({ driveFileId: "", sheetName: client.slug }); setDriveConfigOpen(true); }}
+                  className="inline-flex items-center gap-1.5 bg-white/10 hover:bg-white/20 border border-white/20 text-white px-3 py-1.5 rounded-xl text-sm font-medium transition-colors"
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                  </svg>
+                  Connect Drive
                 </button>
               )}
               <button
@@ -265,11 +310,19 @@ export default function AdminClientDetailPage() {
           </div>
           <div>
             <p className="text-gray-400 text-xs uppercase tracking-wide font-semibold mb-1">Drive Sync</p>
-            <p className="text-gray-800 font-medium">
-              {client.driveConfig?.lastSyncedAt
-                ? new Date(client.driveConfig.lastSyncedAt).toLocaleString()
-                : "Not configured"}
-            </p>
+            {client.driveConfig?.lastSyncedAt ? (
+              <p className="text-gray-800 font-medium">{new Date(client.driveConfig.lastSyncedAt).toLocaleString()}</p>
+            ) : (
+              <button
+                onClick={() => { setDriveForm({ driveFileId: client.driveConfig?.driveFileId ?? "", sheetName: client.driveConfig?.sheetName ?? client.slug }); setDriveConfigOpen(true); }}
+                className="text-sm text-indigo-600 hover:text-indigo-800 font-medium flex items-center gap-1"
+              >
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                </svg>
+                Configure Drive
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -412,6 +465,61 @@ export default function AdminClientDetailPage() {
           </table>
         </div>
       </div>
+
+      {/* Drive Config Modal */}
+      {driveConfigOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md">
+            <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
+              <div>
+                <h2 className="text-lg font-bold text-gray-900">Connect Google Drive</h2>
+                <p className="text-xs text-gray-400 mt-0.5">Link an Excel/Google Sheet to auto-sync report data</p>
+              </div>
+              <button onClick={() => setDriveConfigOpen(false)} className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100">
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="px-6 py-5 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Drive File ID <span className="text-red-400">*</span></label>
+                <input
+                  type="text"
+                  value={driveForm.driveFileId}
+                  onChange={(e) => setDriveForm((f) => ({ ...f, driveFileId: e.target.value }))}
+                  placeholder="Paste the ID from your Google Drive URL"
+                  className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-50 hover:bg-white transition-colors"
+                />
+                <p className="text-xs text-gray-400 mt-1">From: docs.google.com/spreadsheets/d/<span className="font-mono text-indigo-500">FILE_ID</span>/edit</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Sheet Name (tab)</label>
+                <input
+                  type="text"
+                  value={driveForm.sheetName}
+                  onChange={(e) => setDriveForm((f) => ({ ...f, sheetName: e.target.value }))}
+                  placeholder={client.slug}
+                  className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-50 hover:bg-white transition-colors"
+                />
+                <p className="text-xs text-gray-400 mt-1">The tab name in your spreadsheet (defaults to <span className="font-mono">{client.slug}</span>)</p>
+              </div>
+              <div className="flex gap-3 pt-1">
+                <button onClick={() => setDriveConfigOpen(false)} className="flex-1 px-4 py-2.5 text-sm font-medium text-gray-700 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors">
+                  Cancel
+                </button>
+                <button
+                  onClick={saveDriveConfig}
+                  disabled={driveSaving || !driveForm.driveFileId.trim()}
+                  className="flex-1 px-4 py-2.5 text-sm font-semibold bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 disabled:opacity-60 transition-colors"
+                >
+                  {driveSaving ? "Saving…" : "Save & Connect"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Edit Client Modal */}
       {editOpen && (
