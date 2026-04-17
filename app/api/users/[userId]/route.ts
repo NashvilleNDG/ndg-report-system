@@ -50,17 +50,24 @@ export async function PUT(
   const { password, ...rest } = parsed.data;
   const data: Record<string, unknown> = { ...rest };
 
+  // Treat empty string clientId as null
+  if ("clientId" in data && !data.clientId) data.clientId = null;
+
   if (password) {
     data.passwordHash = await bcrypt.hash(password, 12);
   }
 
-  const updated = await prisma.user.update({
-    where: { id: userId },
-    data,
-    select: { id: true, name: true, email: true, role: true, clientId: true, createdAt: true },
-  });
-
-  return NextResponse.json(updated);
+  try {
+    const updated = await prisma.user.update({
+      where: { id: userId },
+      data,
+      select: { id: true, name: true, email: true, role: true, clientId: true, createdAt: true },
+    });
+    return NextResponse.json(updated);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Failed to update user";
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
 }
 
 export async function DELETE(
