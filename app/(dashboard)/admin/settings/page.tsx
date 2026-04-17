@@ -15,11 +15,33 @@ interface DriveConfig {
   syncStatus: string | null;
 }
 
-function DriveConfigRow({ client }: { client: Client }) {
+// Collect all unique file IDs already saved across clients
+function useExistingFileIds() {
+  const [ids, setIds] = useState<string[]>([]);
+  useEffect(() => {
+    const stored = localStorage.getItem("ndg_drive_file_ids");
+    if (stored) setIds(JSON.parse(stored));
+  }, []);
+  const addId = (id: string) => {
+    setIds((prev) => {
+      const next = Array.from(new Set([id, ...prev])).slice(0, 10);
+      localStorage.setItem("ndg_drive_file_ids", JSON.stringify(next));
+      return next;
+    });
+  };
+  return { ids, addId };
+}
+
+function DriveConfigRow({ client, existingFileIds, onFileSaved }: {
+  client: Client;
+  existingFileIds: string[];
+  onFileSaved: (id: string) => void;
+}) {
   const [config, setConfig] = useState<DriveConfig | null>(null);
   const [form, setForm] = useState({ driveFileId: "", sheetName: "" });
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState("");
+  const [showDropdown, setShowDropdown] = useState(false);
 
   useEffect(() => {
     fetch(`/api/sync/drive?clientId=${client.id}`)
@@ -45,11 +67,15 @@ function DriveConfigRow({ client }: { client: Client }) {
     if (res.ok) {
       setConfig(data);
       setMsg("Saved!");
+      if (form.driveFileId) onFileSaved(form.driveFileId);
     } else {
       setMsg(data.error ?? "Save failed");
     }
     setSaving(false);
   };
+
+  // File IDs to show in dropdown (existing ones not already in input)
+  const dropdownOptions = existingFileIds.filter((id) => id !== form.driveFileId);
 
   return (
     <div className="bg-gray-50 rounded-xl border border-gray-200 p-5">
@@ -69,27 +95,62 @@ function DriveConfigRow({ client }: { client: Client }) {
         </div>
       )}
       <form onSubmit={handleSave} className="flex flex-wrap gap-3 items-end">
-        <div className="flex-1 min-w-48">
+        {/* Drive File ID with dropdown */}
+        <div className="flex-1 min-w-48 relative">
           <label className="block text-xs font-medium text-gray-600 mb-1">Drive File ID</label>
-          <input
-            type="text"
-            required
-            value={form.driveFileId}
-            onChange={(e) => setForm((f) => ({ ...f, driveFileId: e.target.value }))}
-            placeholder="Google Drive file ID"
-            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          />
+          <div className="flex gap-1.5">
+            <input
+              type="text"
+              required
+              value={form.driveFileId}
+              onChange={(e) => setForm((f) => ({ ...f, driveFileId: e.target.value }))}
+              placeholder="Paste Google Drive file ID"
+              className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+            {dropdownOptions.length > 0 && (
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setShowDropdown((v) => !v)}
+                  title="Use existing file ID"
+                  className="h-full px-2.5 border border-gray-200 rounded-lg bg-white hover:bg-indigo-50 hover:border-indigo-300 transition-colors text-gray-500 hover:text-indigo-600"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+                {showDropdown && (
+                  <div className="absolute right-0 top-full mt-1 z-20 bg-white border border-gray-200 rounded-xl shadow-lg min-w-72 overflow-hidden">
+                    <p className="text-xs text-gray-400 px-3 pt-2.5 pb-1 font-medium uppercase tracking-wide">Recently used file IDs</p>
+                    {dropdownOptions.map((id) => (
+                      <button
+                        key={id}
+                        type="button"
+                        onClick={() => { setForm((f) => ({ ...f, driveFileId: id })); setShowDropdown(false); }}
+                        className="w-full text-left px-3 py-2.5 text-sm font-mono text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 transition-colors border-t border-gray-100 first:border-0 truncate"
+                      >
+                        {id}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </div>
+
+        {/* Sheet Name */}
         <div className="flex-1 min-w-32">
-          <label className="block text-xs font-medium text-gray-600 mb-1">Sheet Name</label>
+          <label className="block text-xs font-medium text-gray-600 mb-1">Sheet Name (tab)</label>
           <input
             type="text"
             value={form.sheetName}
             onChange={(e) => setForm((f) => ({ ...f, sheetName: e.target.value }))}
-            placeholder="Sheet1"
+            placeholder="e.g. college-place"
             className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
           />
         </div>
+
         <button
           type="submit"
           disabled={saving}
@@ -106,13 +167,30 @@ function DriveConfigRow({ client }: { client: Client }) {
 export default function AdminSettingsPage() {
   const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(true);
+  const { ids: existingFileIds, addId } = useExistingFileIds();
 
   useEffect(() => {
     fetch("/api/clients")
       .then((r) => (r.ok ? r.json() : []))
-      .then(setClients)
+      .then((data) => {
+        setClients(data);
+        // Pre-populate known file IDs from already-configured clients
+        fetch("/api/clients")
+          .then(() => {})
+          .catch(() => {});
+      })
       .finally(() => setLoading(false));
   }, []);
+
+  // Pre-load existing file IDs from all configs on mount
+  useEffect(() => {
+    if (clients.length === 0) return;
+    clients.forEach((c) => {
+      fetch(`/api/sync/drive?clientId=${c.id}`)
+        .then((r) => (r.ok ? r.json() : null))
+        .then((data) => { if (data?.driveFileId) addId(data.driveFileId); });
+    });
+  }, [clients]);
 
   return (
     <div className="space-y-8 max-w-3xl">
@@ -136,7 +214,14 @@ export default function AdminSettingsPage() {
           <p className="text-gray-400 text-sm">No clients found. Create clients first.</p>
         ) : (
           <div className="space-y-4">
-            {clients.map((c) => <DriveConfigRow key={c.id} client={c} />)}
+            {clients.map((c) => (
+              <DriveConfigRow
+                key={c.id}
+                client={c}
+                existingFileIds={existingFileIds}
+                onFileSaved={addId}
+              />
+            ))}
           </div>
         )}
       </div>
