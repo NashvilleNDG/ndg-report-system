@@ -5,8 +5,10 @@ import ReportHeader from "@/components/reports/ReportHeader";
 import SocialMediaSection from "@/components/reports/SocialMediaSection";
 import WebsiteSection from "@/components/reports/WebsiteSection";
 import GMBSection from "@/components/reports/GMBSection";
+import TrendChartsSection from "@/components/reports/TrendChartsSection";
 import Link from "next/link";
 import PrintButton from "@/components/ui/PrintButton";
+import { buildTrendData } from "@/lib/build-trend-data";
 import type { FullReport } from "@/types/report";
 
 interface PageProps {
@@ -35,6 +37,28 @@ export default async function PreviewReportPage({ params }: PageProps) {
 
   const fullReport = report as unknown as FullReport;
   const backUrl = role === "ADMIN" ? `/admin/clients/${clientId}` : `/team/entry/${clientId}/${month}`;
+
+  // ── Historical trend data (last 6 reports for this client) ────────────────
+  const historicalReports = await prisma.report.findMany({
+    where: { clientId },
+    orderBy: { period: "desc" },
+    take: 6,
+    select: {
+      period: true,
+      socialMedia: {
+        select: {
+          instagram: { select: { followers: true } },
+          facebook:  { select: { followers: true } },
+          youtube:   { select: { subscribers: true } },
+          tiktok:    { select: { followers: true } },
+        },
+      },
+      websiteData: { select: { sessions: true } },
+      gmbData:     { select: { profileViews: true } },
+    },
+  });
+  historicalReports.reverse(); // chronological order (oldest → newest)
+  const trendCharts = buildTrendData(historicalReports);
 
   return (
     <div className="space-y-7">
@@ -75,6 +99,9 @@ export default async function PreviewReportPage({ params }: PageProps) {
 
       {fullReport.websiteData && <WebsiteSection data={fullReport.websiteData} />}
       {fullReport.gmbData && <GMBSection data={fullReport.gmbData} />}
+
+      {/* Historical Trend Charts */}
+      {trendCharts.length > 0 && <TrendChartsSection charts={trendCharts} />}
     </div>
   );
 }

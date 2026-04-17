@@ -7,7 +7,9 @@ import ReportHeader from "@/components/reports/ReportHeader";
 import SocialMediaSection from "@/components/reports/SocialMediaSection";
 import WebsiteSection from "@/components/reports/WebsiteSection";
 import GMBSection from "@/components/reports/GMBSection";
+import TrendChartsSection from "@/components/reports/TrendChartsSection";
 import { periodLabel } from "@/lib/report-utils";
+import { buildTrendData } from "@/lib/build-trend-data";
 import type { FullReport } from "@/types/report";
 
 interface PageProps {
@@ -46,6 +48,28 @@ export default async function ClientMonthReportPage({ params }: PageProps) {
   const prevPeriod = currentIndex > 0 ? allReports[currentIndex - 1].period : null;
   const nextPeriod = currentIndex < allReports.length - 1 ? allReports[currentIndex + 1].period : null;
 
+  // ── Historical trend data (last 6 published reports) ──────────────────────
+  const historicalReports = await prisma.report.findMany({
+    where: { clientId, status: "PUBLISHED" },
+    orderBy: { period: "desc" },
+    take: 6,
+    select: {
+      period: true,
+      socialMedia: {
+        select: {
+          instagram: { select: { followers: true } },
+          facebook:  { select: { followers: true } },
+          youtube:   { select: { subscribers: true } },
+          tiktok:    { select: { followers: true } },
+        },
+      },
+      websiteData: { select: { sessions: true } },
+      gmbData:     { select: { profileViews: true } },
+    },
+  });
+  historicalReports.reverse(); // chronological order (oldest → newest)
+  const trendCharts = buildTrendData(historicalReports);
+
   const fullReport = report as unknown as FullReport;
 
   return (
@@ -78,6 +102,9 @@ export default async function ClientMonthReportPage({ params }: PageProps) {
 
       {fullReport.websiteData && <WebsiteSection data={fullReport.websiteData} />}
       {fullReport.gmbData && <GMBSection data={fullReport.gmbData} />}
+
+      {/* Historical Trend Charts */}
+      {trendCharts.length > 0 && <TrendChartsSection charts={trendCharts} />}
 
       {/* Prev / Next Navigation */}
       <div className="flex items-center justify-between pt-2">
