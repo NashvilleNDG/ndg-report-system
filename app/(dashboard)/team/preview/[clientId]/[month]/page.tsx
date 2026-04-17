@@ -75,6 +75,14 @@ export default async function PreviewReportPage({ params }: PageProps) {
         </div>
         <div className="flex items-center gap-3">
           <PrintButton />
+          {role === "ADMIN" && (
+            <Link
+              href={`/team/entry/${clientId}/${month}`}
+              className="text-xs font-medium text-white bg-indigo-600 hover:bg-indigo-700 px-3 py-1.5 rounded-lg transition-colors"
+            >
+              ✏️ Edit Data
+            </Link>
+          )}
           <Link
             href={backUrl}
             className="text-xs font-medium text-amber-700 hover:text-amber-900 border border-amber-300 px-3 py-1.5 rounded-lg hover:bg-amber-100 transition-colors"

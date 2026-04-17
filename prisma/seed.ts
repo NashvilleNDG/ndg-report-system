@@ -1,19 +1,22 @@
+import * as dotenv from "dotenv";
+import * as path from "path";
+
+// Load env files before importing Prisma (ts-node doesn't auto-load .env.local)
+dotenv.config({ path: path.resolve(process.cwd(), ".env.local") });
+dotenv.config({ path: path.resolve(process.cwd(), ".env") });
+
 import { PrismaClient, Role } from "@prisma/client";
+import { PrismaPg } from "@prisma/adapter-pg";
+import { Pool } from "pg";
 import bcrypt from "bcryptjs";
 
 function createPrismaClient() {
-  const isPostgres = process.env.DATABASE_URL?.startsWith("postgres");
-  if (isPostgres) {
-    const { PrismaPg } = require("@prisma/adapter-pg");
-    const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! });
-    return new PrismaClient({ adapter });
-  } else {
-    const { PrismaLibSql } = require("@prisma/adapter-libsql");
-    const path = require("path");
-    const dbPath = path.resolve(process.cwd(), "prisma/dev.db");
-    const adapter = new PrismaLibSql({ url: `file:${dbPath}` });
-    return new PrismaClient({ adapter });
-  }
+  const pool = new Pool({
+    connectionString: process.env.DATABASE_URL!,
+    ssl: { rejectUnauthorized: false },
+  });
+  const adapter = new PrismaPg(pool);
+  return new PrismaClient({ adapter });
 }
 
 const prisma = createPrismaClient();
