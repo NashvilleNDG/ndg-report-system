@@ -1,14 +1,14 @@
 import { defineConfig } from "prisma/config";
-import path from "path";
+import * as dotenv from "dotenv";
+import * as path from "path";
 
-const isDev = process.env.NODE_ENV !== "production";
-const isPostgres = process.env.DATABASE_URL?.startsWith("postgres");
+// Load .env.local (Next.js) first, then fall back to .env (Prisma CLI)
+dotenv.config({ path: path.resolve(process.cwd(), ".env.local") });
+dotenv.config({ path: path.resolve(process.cwd(), ".env") });
 
 export default defineConfig({
   schema: "prisma/schema.prisma",
   datasource: {
-    url: isPostgres
-      ? process.env.DATABASE_URL!
-      : `file:${path.resolve(process.cwd(), "prisma/dev.db")}`,
+    url: process.env.DATABASE_URL!,
   },
 });
