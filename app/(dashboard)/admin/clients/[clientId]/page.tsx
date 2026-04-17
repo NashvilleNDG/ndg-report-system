@@ -44,6 +44,33 @@ export default function AdminClientDetailPage() {
   // Delete report state
   const [deletingReport, setDeletingReport] = useState<string | null>(null);
 
+  // Drive sync state
+  const [syncing, setSyncing] = useState(false);
+  const [syncMsg, setSyncMsg] = useState<{ type: "ok" | "err"; text: string } | null>(null);
+
+  const syncDrive = async () => {
+    setSyncing(true);
+    setSyncMsg(null);
+    try {
+      const res = await fetch("/api/sync/drive", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ clientId }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setSyncMsg({ type: "ok", text: `✓ Synced ${data.periodsUpserted ?? ""} period(s) successfully` });
+        await load(); // refresh reports list
+      } else {
+        setSyncMsg({ type: "err", text: data.error ?? "Sync failed" });
+      }
+    } catch {
+      setSyncMsg({ type: "err", text: "Network error during sync" });
+    } finally {
+      setSyncing(false);
+    }
+  };
+
   const deleteReport = async (reportId: string, period: string) => {
     if (!confirm(`Delete report for ${periodLabel(period)}? This cannot be undone.`)) return;
     setDeletingReport(reportId);
@@ -182,7 +209,7 @@ export default function AdminClientDetailPage() {
                 <p className="text-slate-400 font-mono text-xs mt-0.5">{client.slug}</p>
               </div>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold ${
                 client.isActive
                   ? "bg-emerald-400/20 text-emerald-300 border border-emerald-400/30"
@@ -191,6 +218,30 @@ export default function AdminClientDetailPage() {
                 <span className={`w-1.5 h-1.5 rounded-full ${client.isActive ? "bg-emerald-400" : "bg-gray-400"}`} />
                 {client.isActive ? "Active" : "Inactive"}
               </span>
+              {client.driveConfig && (
+                <button
+                  onClick={syncDrive}
+                  disabled={syncing}
+                  className="inline-flex items-center gap-1.5 bg-indigo-500/80 hover:bg-indigo-500 border border-indigo-400/50 text-white px-3 py-1.5 rounded-xl text-sm font-medium transition-colors disabled:opacity-60"
+                >
+                  {syncing ? (
+                    <>
+                      <svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                      </svg>
+                      Syncing…
+                    </>
+                  ) : (
+                    <>
+                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                      </svg>
+                      Sync Drive
+                    </>
+                  )}
+                </button>
+              )}
               <button
                 onClick={openEdit}
                 className="inline-flex items-center gap-1.5 bg-white/10 hover:bg-white/20 border border-white/20 text-white px-3 py-1.5 rounded-xl text-sm font-medium transition-colors"
@@ -222,6 +273,18 @@ export default function AdminClientDetailPage() {
           </div>
         </div>
       </div>
+
+      {/* Sync status message */}
+      {syncMsg && (
+        <div className={`flex items-center justify-between gap-3 px-4 py-3 rounded-xl text-sm font-medium border ${
+          syncMsg.type === "ok"
+            ? "bg-green-50 text-green-700 border-green-200"
+            : "bg-red-50 text-red-700 border-red-200"
+        }`}>
+          <span>{syncMsg.text}</span>
+          <button onClick={() => setSyncMsg(null)} className="text-xs opacity-60 hover:opacity-100">✕</button>
+        </div>
+      )}
 
       {/* Reports Table */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
