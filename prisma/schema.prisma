@@ -52,18 +52,19 @@ model DriveConfig {
 }
 
 model Report {
-  id          String       @id @default(cuid())
-  clientId    String
-  client      Client       @relation(fields: [clientId], references: [id], onDelete: Cascade)
-  period      String
-  status      ReportStatus @default(DRAFT)
-  notes       String?
-  publishedAt DateTime?
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-  socialMedia SocialMediaData?
-  websiteData WebsiteData?
-  gmbData     GMBData?
+  id             String               @id @default(cuid())
+  clientId       String
+  client         Client               @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  period         String
+  status         ReportStatus         @default(DRAFT)
+  notes          String?
+  publishedAt    DateTime?
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+  socialMedia    SocialMediaData?
+  websiteData    WebsiteData?
+  gmbData        GMBData?
+  emailMarketing EmailMarketingData?
 
   @@unique([clientId, period])
   @@index([clientId, period])
@@ -85,75 +86,71 @@ model SocialMediaData {
 }
 
 model InstagramData {
-  id                String          @id @default(cuid())
-  socialMediaDataId String          @unique
-  socialMediaData   SocialMediaData @relation(fields: [socialMediaDataId], references: [id], onDelete: Cascade)
-  followers         Int?
-  followersChange   Int?
-  likes             Int?
-  reach             Int?
-  impressions       Int?
-  engagement        Float?
+  id                  String          @id @default(cuid())
+  socialMediaDataId   String          @unique
+  socialMediaData     SocialMediaData @relation(fields: [socialMediaDataId], references: [id], onDelete: Cascade)
+  views               Int?
+  contentInteractions Int?
+  follows             Int?
+  numberOfPosts       Int?
 }
 
 model FacebookData {
-  id                String          @id @default(cuid())
-  socialMediaDataId String          @unique
-  socialMediaData   SocialMediaData @relation(fields: [socialMediaDataId], references: [id], onDelete: Cascade)
-  followers         Int?
-  followersChange   Int?
-  likes             Int?
-  reach             Int?
-  impressions       Int?
-  engagement        Float?
+  id                  String          @id @default(cuid())
+  socialMediaDataId   String          @unique
+  socialMediaData     SocialMediaData @relation(fields: [socialMediaDataId], references: [id], onDelete: Cascade)
+  views               Int?
+  contentInteractions Int?
+  follows             Int?
+  numberOfPosts       Int?
 }
 
 model YouTubeData {
   id                String          @id @default(cuid())
   socialMediaDataId String          @unique
   socialMediaData   SocialMediaData @relation(fields: [socialMediaDataId], references: [id], onDelete: Cascade)
-  subscribers       Int?
-  subscribersChange Int?
-  likes             Int?
   views             Int?
-  impressions       Int?
-  engagement        Float?
+  subscribers       Int?
+  numberOfVideos    Int?
 }
 
 model TikTokData {
-  id                String          @id @default(cuid())
-  socialMediaDataId String          @unique
-  socialMediaData   SocialMediaData @relation(fields: [socialMediaDataId], references: [id], onDelete: Cascade)
-  followers         Int?
-  followersChange   Int?
-  likes             Int?
-  reach             Int?
-  impressions       Int?
-  engagement        Float?
+  id                  String          @id @default(cuid())
+  socialMediaDataId   String          @unique
+  socialMediaData     SocialMediaData @relation(fields: [socialMediaDataId], references: [id], onDelete: Cascade)
+  views               Int?
+  contentInteractions Int?
+  follows             Int?
+  numberOfReels       Int?
 }
 
 model WebsiteData {
-  id             String  @id @default(cuid())
-  reportId       String  @unique
-  report         Report  @relation(fields: [reportId], references: [id], onDelete: Cascade)
-  sessions       Int?
-  users          Int?
-  pageviews      Int?
-  bounceRate     Float?
-  conversions    Int?
-  conversionRate Float?
+  id         String  @id @default(cuid())
+  reportId   String  @unique
+  report     Report  @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  totalUsers Int?
+  newUsers   Int?
+  views      Int?
+  eventCount Int?
 }
 
 model GMBData {
-  id                   String  @id @default(cuid())
-  reportId             String  @unique
-  report               Report  @relation(fields: [reportId], references: [id], onDelete: Cascade)
-  profileViews         Int?
-  searchImpressions    Int?
-  businessInteractions Int?
-  clicks               Int?
-  calls                Int?
-  directionRequests    Int?
+  id                  String  @id @default(cuid())
+  reportId            String  @unique
+  report              Report  @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  profileInteractions Int?
+  views               Int?
+  searches            Int?
+  numberOfReviews     Int?
+}
+
+model EmailMarketingData {
+  id             String  @id @default(cuid())
+  reportId       String  @unique
+  report         Report  @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  numberOfEmails Int?
+  totalSends     Int?
+  openRate       Float?
 }
 
 model PasswordResetToken {

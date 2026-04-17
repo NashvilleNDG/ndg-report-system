@@ -15,6 +15,7 @@ async function getReportWithAccess(reportId: string, session: Session | null) {
       },
       websiteData: true,
       gmbData: true,
+      emailMarketing: true,
     },
   });
 
@@ -46,6 +47,7 @@ export async function GET(
     socialMedia: report.socialMedia,
     websiteData: report.websiteData,
     gmbData: report.gmbData,
+    emailMarketing: report.emailMarketing,
   });
 }
 
@@ -71,8 +73,9 @@ export async function PUT(
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 422 });
   }
 
-  const { instagram, facebook, youtube, tiktok, website, gmb } = parsed.data;
+  const { instagram, facebook, youtube, tiktok, website, gmb, email } = parsed.data;
 
+  // ── Social media platforms ────────────────────────────────────────────────
   if (instagram || facebook || youtube || tiktok) {
     const social = await prisma.socialMediaData.upsert({
       where: { reportId: report.id },
@@ -113,6 +116,7 @@ export async function PUT(
     }
   }
 
+  // ── Website ───────────────────────────────────────────────────────────────
   if (website) {
     await prisma.websiteData.upsert({
       where: { reportId: report.id },
@@ -121,11 +125,21 @@ export async function PUT(
     });
   }
 
+  // ── Google My Business ────────────────────────────────────────────────────
   if (gmb) {
     await prisma.gMBData.upsert({
       where: { reportId: report.id },
       update: gmb,
       create: { reportId: report.id, ...gmb },
+    });
+  }
+
+  // ── Email Marketing ───────────────────────────────────────────────────────
+  if (email) {
+    await prisma.emailMarketingData.upsert({
+      where: { reportId: report.id },
+      update: email,
+      create: { reportId: report.id, ...email },
     });
   }
 
@@ -137,6 +151,7 @@ export async function PUT(
       },
       websiteData: true,
       gmbData: true,
+      emailMarketing: true,
     },
   });
 

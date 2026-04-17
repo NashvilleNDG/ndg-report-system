@@ -1,47 +1,63 @@
-export interface SocialPlatformData {
-  followers?: number | null;
-  followersChange?: number | null;
-  likes?: number | null;
-  reach?: number | null;
-  impressions?: number | null;
-  engagement?: number | null;
+export interface InstagramMetrics {
+  views?: number | null;
+  contentInteractions?: number | null;
+  follows?: number | null;
+  numberOfPosts?: number | null;
 }
 
-export interface YouTubePlatformData {
-  subscribers?: number | null;
-  subscribersChange?: number | null;
-  likes?: number | null;
+export interface FacebookMetrics {
   views?: number | null;
-  impressions?: number | null;
-  engagement?: number | null;
+  contentInteractions?: number | null;
+  follows?: number | null;
+  numberOfPosts?: number | null;
+}
+
+export interface YouTubeMetrics {
+  views?: number | null;
+  subscribers?: number | null;
+  numberOfVideos?: number | null;
+}
+
+export interface TikTokMetrics {
+  views?: number | null;
+  contentInteractions?: number | null;
+  follows?: number | null;
+  numberOfReels?: number | null;
 }
 
 export interface WebsiteMetrics {
-  sessions?: number | null;
-  users?: number | null;
-  pageviews?: number | null;
-  bounceRate?: number | null;
-  conversions?: number | null;
-  conversionRate?: number | null;
+  totalUsers?: number | null;
+  newUsers?: number | null;
+  views?: number | null;
+  eventCount?: number | null;
 }
 
 export interface GMBMetrics {
-  profileViews?: number | null;
-  searchImpressions?: number | null;
-  businessInteractions?: number | null;
-  clicks?: number | null;
-  calls?: number | null;
-  directionRequests?: number | null;
+  profileInteractions?: number | null;
+  views?: number | null;
+  searches?: number | null;
+  numberOfReviews?: number | null;
 }
+
+export interface EmailMarketingMetrics {
+  numberOfEmails?: number | null;
+  totalSends?: number | null;
+  openRate?: number | null;
+}
+
+// Legacy aliases kept for build-trend-data (remove once fully migrated)
+export type SocialPlatformData = InstagramMetrics | FacebookMetrics | TikTokMetrics;
+export type YouTubePlatformData = YouTubeMetrics;
 
 export interface ParsedReportRow {
   period: string;
-  instagram: SocialPlatformData;
-  facebook: SocialPlatformData;
-  youtube: YouTubePlatformData;
-  tiktok: SocialPlatformData;
+  instagram: InstagramMetrics;
+  facebook: FacebookMetrics;
+  youtube: YouTubeMetrics;
+  tiktok: TikTokMetrics;
   website: WebsiteMetrics;
   gmb: GMBMetrics;
+  emailMarketing: EmailMarketingMetrics;
 }
 
 export interface FullReport {
@@ -52,11 +68,12 @@ export interface FullReport {
   notes?: string | null;
   client: { name: string; slug: string; logoUrl?: string | null };
   socialMedia?: {
-    instagram?: SocialPlatformData | null;
-    facebook?: SocialPlatformData | null;
-    youtube?: YouTubePlatformData | null;
-    tiktok?: SocialPlatformData | null;
+    instagram?: InstagramMetrics | null;
+    facebook?: FacebookMetrics | null;
+    youtube?: YouTubeMetrics | null;
+    tiktok?: TikTokMetrics | null;
   } | null;
   websiteData?: WebsiteMetrics | null;
   gmbData?: GMBMetrics | null;
+  emailMarketing?: EmailMarketingMetrics | null;
 }

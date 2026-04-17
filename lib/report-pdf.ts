@@ -9,10 +9,13 @@ import PDFDocument from "pdfkit";
 import { periodLabel } from "./report-utils";
 import type {
   FullReport,
-  SocialPlatformData,
-  YouTubePlatformData,
+  InstagramMetrics,
+  FacebookMetrics,
+  YouTubeMetrics,
+  TikTokMetrics,
   WebsiteMetrics,
   GMBMetrics,
+  EmailMarketingMetrics,
 } from "@/types/report";
 
 // ── Colours ───────────────────────────────────────────────────────────────────
@@ -109,60 +112,65 @@ function statCard(
   }
 }
 
-function platformBlock(
+function socialBlock(
   doc: Doc,
   cy: number,
   name: string,
   color: string,
-  data: SocialPlatformData | YouTubePlatformData,
-  isYouTube: boolean
+  cards: { label: string; value: string }[]
 ): number {
-  const isYT = isYouTube;
-
-  // Platform header bar
   doc.roundedRect(MARGIN, cy, BW, 26, 3).fillColor(color).fill();
   doc.fillColor(WHITE).font("Helvetica-Bold").fontSize(9.5)
      .text(name, MARGIN + 12, cy + 8, { lineBreak: false });
-
-  // Engagement rate (right side of bar)
-  if (data.engagement != null) {
-    const engText = `Engagement: ${pct(data.engagement)}`;
-    doc.fillColor("rgba(255,255,255,0.85)").font("Helvetica").fontSize(8)
-       .text(engText, MARGIN, cy + 9, { width: BW - 12, align: "right", lineBreak: false });
-  }
   cy += 30;
 
-  // Stat cards
-  const followers = isYT
-    ? (data as YouTubePlatformData).subscribers
-    : (data as SocialPlatformData).followers;
-  const followersChange = isYT
-    ? (data as YouTubePlatformData).subscribersChange
-    : (data as SocialPlatformData).followersChange;
-  const reach = isYT
-    ? (data as YouTubePlatformData).views
-    : (data as SocialPlatformData).reach;
-
-  const cards = [
-    { label: isYT ? "Subscribers" : "Followers", value: fmt(followers), delta: followersChange },
-    { label: "Likes",                             value: fmt(data.likes) },
-    { label: isYT ? "Views" : "Reach",            value: fmt(reach) },
-    { label: "Impressions",                        value: fmt(data.impressions) },
-  ];
-
-  const GAP  = 8;
-  const CARD_W = (BW - GAP * 3) / 4;
+  const GAP    = 8;
+  const CARD_W = (BW - GAP * (cards.length - 1)) / cards.length;
   const CARD_H = 50;
 
   cards.forEach((c, i) => {
-    statCard(doc, MARGIN + i * (CARD_W + GAP), cy, CARD_W, CARD_H, c.label, c.value, c.delta);
+    statCard(doc, MARGIN + i * (CARD_W + GAP), cy, CARD_W, CARD_H, c.label, c.value);
   });
 
   return cy + CARD_H + 12;
 }
 
+function instagramBlock(doc: Doc, cy: number, d: InstagramMetrics): number {
+  return socialBlock(doc, cy, "Instagram", "#c13584", [
+    { label: "Views",               value: fmt(d.views) },
+    { label: "Content Interactions",value: fmt(d.contentInteractions) },
+    { label: "Follows",             value: fmt(d.follows) },
+    { label: "No. of Posts",        value: fmt(d.numberOfPosts) },
+  ]);
+}
+
+function facebookBlock(doc: Doc, cy: number, d: FacebookMetrics): number {
+  return socialBlock(doc, cy, "Facebook", "#1877f2", [
+    { label: "Views",               value: fmt(d.views) },
+    { label: "Content Interactions",value: fmt(d.contentInteractions) },
+    { label: "Follows",             value: fmt(d.follows) },
+    { label: "No. of Posts",        value: fmt(d.numberOfPosts) },
+  ]);
+}
+
+function youtubeBlock(doc: Doc, cy: number, d: YouTubeMetrics): number {
+  return socialBlock(doc, cy, "YouTube", "#ff0000", [
+    { label: "Views",         value: fmt(d.views) },
+    { label: "Subscribers",   value: fmt(d.subscribers) },
+    { label: "No. of Videos", value: fmt(d.numberOfVideos) },
+  ]);
+}
+
+function tiktokBlock(doc: Doc, cy: number, d: TikTokMetrics): number {
+  return socialBlock(doc, cy, "TikTok", "#010101", [
+    { label: "Views",               value: fmt(d.views) },
+    { label: "Content Interactions",value: fmt(d.contentInteractions) },
+    { label: "Follows",             value: fmt(d.follows) },
+    { label: "No. of Reels",        value: fmt(d.numberOfReels) },
+  ]);
+}
+
 function websiteBlock(doc: Doc, cy: number, x: number, w: number, data: WebsiteMetrics): number {
-  // Header bar
   doc.roundedRect(x, cy, w, 26, 3).fillColor(TEAL).fill();
   doc.fillColor(WHITE).font("Helvetica-Bold").fontSize(9)
      .text("Website Analytics", x + 10, cy + 8, { lineBreak: false });
@@ -172,23 +180,18 @@ function websiteBlock(doc: Doc, cy: number, x: number, w: number, data: WebsiteM
   const CARD_W = (w - GAP) / 2;
   const CARD_H = 48;
 
-  statCard(doc, x,           cy, CARD_W, CARD_H, "Sessions",    fmt(data.sessions));
-  statCard(doc, x + CARD_W + GAP, cy, CARD_W, CARD_H, "Users", fmt(data.users));
+  statCard(doc, x,                cy, CARD_W, CARD_H, "Total Users", fmt(data.totalUsers));
+  statCard(doc, x + CARD_W + GAP, cy, CARD_W, CARD_H, "New Users",  fmt(data.newUsers));
   cy += CARD_H + GAP;
 
-  statCard(doc, x,           cy, CARD_W, CARD_H, "Pageviews",   fmt(data.pageviews));
-  statCard(doc, x + CARD_W + GAP, cy, CARD_W, CARD_H, "Conversions", fmt(data.conversions));
-  cy += CARD_H + GAP;
-
-  statCard(doc, x,           cy, CARD_W, CARD_H, "Bounce Rate", pct(data.bounceRate), undefined, SLATE_700);
-  statCard(doc, x + CARD_W + GAP, cy, CARD_W, CARD_H, "Conversion Rate", pct(data.conversionRate), undefined, TEAL);
+  statCard(doc, x,                cy, CARD_W, CARD_H, "Views",       fmt(data.views));
+  statCard(doc, x + CARD_W + GAP, cy, CARD_W, CARD_H, "Event Count", fmt(data.eventCount));
   cy += CARD_H;
 
   return cy;
 }
 
 function gmbBlock(doc: Doc, cy: number, x: number, w: number, data: GMBMetrics): number {
-  // Header bar
   doc.roundedRect(x, cy, w, 26, 3).fillColor(ORANGE).fill();
   doc.fillColor(WHITE).font("Helvetica-Bold").fontSize(9)
      .text("Google My Business", x + 10, cy + 8, { lineBreak: false });
@@ -198,19 +201,33 @@ function gmbBlock(doc: Doc, cy: number, x: number, w: number, data: GMBMetrics):
   const CARD_W = (w - GAP) / 2;
   const CARD_H = 48;
 
-  statCard(doc, x,           cy, CARD_W, CARD_H, "Profile Views",    fmt(data.profileViews));
-  statCard(doc, x + CARD_W + GAP, cy, CARD_W, CARD_H, "Search Impr.",  fmt(data.searchImpressions));
+  statCard(doc, x,                cy, CARD_W, CARD_H, "Profile Interactions", fmt(data.profileInteractions));
+  statCard(doc, x + CARD_W + GAP, cy, CARD_W, CARD_H, "Views",               fmt(data.views));
   cy += CARD_H + GAP;
 
-  statCard(doc, x,           cy, CARD_W, CARD_H, "Interactions", fmt(data.businessInteractions));
-  statCard(doc, x + CARD_W + GAP, cy, CARD_W, CARD_H, "Clicks",   fmt(data.clicks));
-  cy += CARD_H + GAP;
-
-  statCard(doc, x,           cy, CARD_W, CARD_H, "Calls",  fmt(data.calls), undefined, ORANGE);
-  statCard(doc, x + CARD_W + GAP, cy, CARD_W, CARD_H, "Direction Requests", fmt(data.directionRequests), undefined, ORANGE);
+  statCard(doc, x,                cy, CARD_W, CARD_H, "Searches",         fmt(data.searches));
+  statCard(doc, x + CARD_W + GAP, cy, CARD_W, CARD_H, "Number of Reviews",fmt(data.numberOfReviews));
   cy += CARD_H;
 
   return cy;
+}
+
+function emailBlock(doc: Doc, cy: number, data: EmailMarketingMetrics): number {
+  const PURPLE = "#7c3aed";
+  doc.roundedRect(MARGIN, cy, BW, 26, 3).fillColor(PURPLE).fill();
+  doc.fillColor(WHITE).font("Helvetica-Bold").fontSize(9.5)
+     .text("Email Marketing", MARGIN + 12, cy + 8, { lineBreak: false });
+  cy += 30;
+
+  const GAP    = 8;
+  const CARD_W = (BW - GAP * 2) / 3;
+  const CARD_H = 50;
+
+  statCard(doc, MARGIN,                   cy, CARD_W, CARD_H, "No. of Emails", fmt(data.numberOfEmails));
+  statCard(doc, MARGIN + CARD_W + GAP,    cy, CARD_W, CARD_H, "Total Sends",   fmt(data.totalSends));
+  statCard(doc, MARGIN + (CARD_W + GAP)*2, cy, CARD_W, CARD_H, "Open Rate",    pct(data.openRate), undefined, PURPLE);
+
+  return cy + CARD_H + 12;
 }
 
 // ── Main builder ──────────────────────────────────────────────────────────────
@@ -268,45 +285,31 @@ function buildPdf(doc: Doc, report: FullReport) {
     cy += boxH + 14;
   }
 
-  // Social Media
+  // ── Social Media ────────────────────────────────────────────────
   const hasSocial = !!(report.socialMedia &&
     (report.socialMedia.instagram || report.socialMedia.facebook ||
      report.socialMedia.youtube   || report.socialMedia.tiktok));
 
   if (hasSocial) {
     cy = sectionHeading(doc, cy, "Social Media", "Performance across all platforms", BRAND);
-
-    if (report.socialMedia?.instagram) {
-      cy = platformBlock(doc, cy, "Instagram", "#c13584", report.socialMedia.instagram, false);
-    }
-    if (report.socialMedia?.facebook) {
-      cy = platformBlock(doc, cy, "Facebook", "#1877f2", report.socialMedia.facebook, false);
-    }
-    if (report.socialMedia?.youtube) {
-      cy = platformBlock(doc, cy, "YouTube", "#ff0000", report.socialMedia.youtube, true);
-    }
-    if (report.socialMedia?.tiktok) {
-      cy = platformBlock(doc, cy, "TikTok", "#010101", report.socialMedia.tiktok, false);
-    }
-
+    if (report.socialMedia?.instagram) cy = instagramBlock(doc, cy, report.socialMedia.instagram);
+    if (report.socialMedia?.facebook)  cy = facebookBlock(doc,  cy, report.socialMedia.facebook);
+    if (report.socialMedia?.youtube)   cy = youtubeBlock(doc,   cy, report.socialMedia.youtube);
+    if (report.socialMedia?.tiktok)    cy = tiktokBlock(doc,    cy, report.socialMedia.tiktok);
     cy += 6;
   }
 
-  // Website + GMB
+  // ── Website + GMB ────────────────────────────────────────────────
   const hasWebsite = !!report.websiteData;
   const hasGMB     = !!report.gmbData;
 
   if (hasWebsite || hasGMB) {
-    if (cy > FOOTER_Y - 200) {
-      doc.addPage();
-      cy = 40;
-    }
-
+    if (cy > FOOTER_Y - 200) { doc.addPage(); cy = 40; }
     cy = sectionHeading(doc, cy, "Website & Local", "Analytics & Google My Business", TEAL);
 
     if (hasWebsite && hasGMB) {
       const colW = (BW - 12) / 2;
-      const endWebsite = websiteBlock(doc, cy, MARGIN,           colW, report.websiteData!);
+      const endWebsite = websiteBlock(doc, cy, MARGIN,             colW, report.websiteData!);
       const endGmb     = gmbBlock(doc,     cy, MARGIN + colW + 12, colW, report.gmbData!);
       cy = Math.max(endWebsite, endGmb);
     } else if (hasWebsite) {
@@ -314,10 +317,18 @@ function buildPdf(doc: Doc, report: FullReport) {
     } else if (hasGMB) {
       cy = gmbBlock(doc, cy, MARGIN, BW, report.gmbData!);
     }
+    cy += 6;
   }
 
-  // No data fallback
-  if (!hasSocial && !hasWebsite && !hasGMB) {
+  // ── Email Marketing ──────────────────────────────────────────────
+  if (report.emailMarketing) {
+    if (cy > FOOTER_Y - 120) { doc.addPage(); cy = 40; }
+    cy = sectionHeading(doc, cy, "Email Marketing", "Campaign performance", "#7c3aed");
+    cy = emailBlock(doc, cy, report.emailMarketing);
+  }
+
+  // ── No data fallback ─────────────────────────────────────────────
+  if (!hasSocial && !hasWebsite && !hasGMB && !report.emailMarketing) {
     doc.fillColor(SLATE_500).font("Helvetica").fontSize(10)
        .text("No data recorded for this period.", MARGIN, cy + 20, { width: BW, align: "center" });
   }

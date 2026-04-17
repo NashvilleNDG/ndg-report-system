@@ -32,62 +32,56 @@ export const updateUserSchema = z.object({
 export const reportDataSchema = z.object({
   instagram: z
     .object({
-      followers: z.number().nullable().optional(),
-      followersChange: z.number().nullable().optional(),
-      likes: z.number().nullable().optional(),
-      reach: z.number().nullable().optional(),
-      impressions: z.number().nullable().optional(),
-      engagement: z.number().nullable().optional(),
+      views:               z.number().nullable().optional(),
+      contentInteractions: z.number().nullable().optional(),
+      follows:             z.number().nullable().optional(),
+      numberOfPosts:       z.number().nullable().optional(),
     })
     .optional(),
   facebook: z
     .object({
-      followers: z.number().nullable().optional(),
-      followersChange: z.number().nullable().optional(),
-      likes: z.number().nullable().optional(),
-      reach: z.number().nullable().optional(),
-      impressions: z.number().nullable().optional(),
-      engagement: z.number().nullable().optional(),
+      views:               z.number().nullable().optional(),
+      contentInteractions: z.number().nullable().optional(),
+      follows:             z.number().nullable().optional(),
+      numberOfPosts:       z.number().nullable().optional(),
     })
     .optional(),
   youtube: z
     .object({
-      subscribers: z.number().nullable().optional(),
-      subscribersChange: z.number().nullable().optional(),
-      likes: z.number().nullable().optional(),
-      views: z.number().nullable().optional(),
-      impressions: z.number().nullable().optional(),
-      engagement: z.number().nullable().optional(),
+      views:          z.number().nullable().optional(),
+      subscribers:    z.number().nullable().optional(),
+      numberOfVideos: z.number().nullable().optional(),
     })
     .optional(),
   tiktok: z
     .object({
-      followers: z.number().nullable().optional(),
-      followersChange: z.number().nullable().optional(),
-      likes: z.number().nullable().optional(),
-      reach: z.number().nullable().optional(),
-      impressions: z.number().nullable().optional(),
-      engagement: z.number().nullable().optional(),
+      views:               z.number().nullable().optional(),
+      contentInteractions: z.number().nullable().optional(),
+      follows:             z.number().nullable().optional(),
+      numberOfReels:       z.number().nullable().optional(),
     })
     .optional(),
   website: z
     .object({
-      sessions: z.number().nullable().optional(),
-      users: z.number().nullable().optional(),
-      pageviews: z.number().nullable().optional(),
-      bounceRate: z.number().nullable().optional(),
-      conversions: z.number().nullable().optional(),
-      conversionRate: z.number().nullable().optional(),
+      totalUsers: z.number().nullable().optional(),
+      newUsers:   z.number().nullable().optional(),
+      views:      z.number().nullable().optional(),
+      eventCount: z.number().nullable().optional(),
     })
     .optional(),
   gmb: z
     .object({
-      profileViews: z.number().nullable().optional(),
-      searchImpressions: z.number().nullable().optional(),
-      businessInteractions: z.number().nullable().optional(),
-      clicks: z.number().nullable().optional(),
-      calls: z.number().nullable().optional(),
-      directionRequests: z.number().nullable().optional(),
+      profileInteractions: z.number().nullable().optional(),
+      views:               z.number().nullable().optional(),
+      searches:            z.number().nullable().optional(),
+      numberOfReviews:     z.number().nullable().optional(),
+    })
+    .optional(),
+  email: z
+    .object({
+      numberOfEmails: z.number().nullable().optional(),
+      totalSends:     z.number().nullable().optional(),
+      openRate:       z.number().nullable().optional(),
     })
     .optional(),
 });

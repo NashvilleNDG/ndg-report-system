@@ -1,0 +1,43 @@
+import StatCard from "@/components/ui/StatCard";
+import { formatNumber } from "@/lib/report-utils";
+import type { EmailMarketingMetrics } from "@/types/report";
+
+export default function EmailMarketingSection({ data }: { data: EmailMarketingMetrics }) {
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center gap-2.5">
+        <div className="w-8 h-8 bg-violet-50 rounded-lg flex items-center justify-center">
+          <svg className="w-4 h-4 text-violet-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+          </svg>
+        </div>
+        <h2 className="text-base font-bold text-gray-800">Email Marketing</h2>
+      </div>
+
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover-lift">
+        <div className="bg-gradient-to-r from-violet-600 to-purple-500 px-5 py-4 flex items-center gap-3">
+          <div className="w-9 h-9 bg-white/15 rounded-xl flex items-center justify-center flex-shrink-0 border border-white/20">
+            <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+            </svg>
+          </div>
+          <h3 className="text-base font-bold text-white">Email Campaigns</h3>
+          {data.openRate != null && (
+            <div className="ml-auto glass px-3 py-1 rounded-full">
+              <span className="text-white text-xs font-semibold">{data.openRate.toFixed(1)}% Open Rate</span>
+            </div>
+          )}
+        </div>
+        <div className="p-5">
+          <div className="grid grid-cols-2 gap-3">
+            <StatCard label="Number of Emails" value={formatNumber(data.numberOfEmails)} />
+            <StatCard label="Total Sends"       value={formatNumber(data.totalSends)} />
+            {data.openRate != null && (
+              <StatCard label="Open Rate" value={`${data.openRate.toFixed(1)}%`} />
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

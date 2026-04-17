@@ -1,12 +1,8 @@
 import StatCard from "@/components/ui/StatCard";
-import { formatNumber, formatPercent } from "@/lib/report-utils";
+import { formatNumber } from "@/lib/report-utils";
 import type { WebsiteMetrics } from "@/types/report";
 
-interface WebsiteSectionProps {
-  data: WebsiteMetrics;
-}
-
-export default function WebsiteSection({ data }: WebsiteSectionProps) {
+export default function WebsiteSection({ data }: { data: WebsiteMetrics }) {
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2.5">
@@ -26,21 +22,13 @@ export default function WebsiteSection({ data }: WebsiteSectionProps) {
             </svg>
           </div>
           <h3 className="text-base font-bold text-white">Website Analytics</h3>
-          <div className="ml-auto flex items-center gap-4">
-            <div className="glass px-3 py-1 rounded-full">
-              <span className="text-white text-xs font-semibold">Bounce: {formatPercent(data.bounceRate)}</span>
-            </div>
-            <div className="glass px-3 py-1 rounded-full">
-              <span className="text-white text-xs font-semibold">Conv: {formatPercent(data.conversionRate)}</span>
-            </div>
-          </div>
         </div>
         <div className="p-5">
           <div className="grid grid-cols-2 gap-3">
-            <StatCard label="Sessions" value={formatNumber(data.sessions)} />
-            <StatCard label="Users" value={formatNumber(data.users)} />
-            <StatCard label="Pageviews" value={formatNumber(data.pageviews)} />
-            <StatCard label="Conversions" value={formatNumber(data.conversions)} />
+            <StatCard label="Total Users" value={formatNumber(data.totalUsers)} />
+            <StatCard label="New Users"   value={formatNumber(data.newUsers)} />
+            <StatCard label="Views"       value={formatNumber(data.views)} />
+            <StatCard label="Event Count" value={formatNumber(data.eventCount)} />
           </div>
         </div>
       </div>

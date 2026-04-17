@@ -6,6 +6,7 @@ import SocialMediaSection from "@/components/reports/SocialMediaSection";
 import WebsiteSection from "@/components/reports/WebsiteSection";
 import GMBSection from "@/components/reports/GMBSection";
 import TrendChartsSection from "@/components/reports/TrendChartsSection";
+import EmailMarketingSection from "@/components/reports/EmailMarketingSection";
 import Link from "next/link";
 import PrintButton from "@/components/ui/PrintButton";
 import { buildTrendData } from "@/lib/build-trend-data";
@@ -30,6 +31,7 @@ export default async function PreviewReportPage({ params }: PageProps) {
       socialMedia: { include: { instagram: true, facebook: true, youtube: true, tiktok: true } },
       websiteData: true,
       gmbData: true,
+      emailMarketing: true,
     },
   });
 
@@ -47,14 +49,14 @@ export default async function PreviewReportPage({ params }: PageProps) {
       period: true,
       socialMedia: {
         select: {
-          instagram: { select: { followers: true } },
-          facebook:  { select: { followers: true } },
+          instagram: { select: { follows: true } },
+          facebook:  { select: { follows: true } },
           youtube:   { select: { subscribers: true } },
-          tiktok:    { select: { followers: true } },
+          tiktok:    { select: { follows: true } },
         },
       },
-      websiteData: { select: { sessions: true } },
-      gmbData:     { select: { profileViews: true } },
+      websiteData: { select: { views: true } },
+      gmbData:     { select: { views: true } },
     },
   });
   historicalReports.reverse(); // chronological order (oldest → newest)
@@ -99,6 +101,7 @@ export default async function PreviewReportPage({ params }: PageProps) {
 
       {fullReport.websiteData && <WebsiteSection data={fullReport.websiteData} />}
       {fullReport.gmbData && <GMBSection data={fullReport.gmbData} />}
+      {fullReport.emailMarketing && <EmailMarketingSection data={fullReport.emailMarketing} />}
 
       {/* Historical Trend Charts */}
       {trendCharts.length > 0 && <TrendChartsSection charts={trendCharts} />}

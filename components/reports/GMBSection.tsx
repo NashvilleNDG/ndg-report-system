@@ -2,11 +2,7 @@ import StatCard from "@/components/ui/StatCard";
 import { formatNumber } from "@/lib/report-utils";
 import type { GMBMetrics } from "@/types/report";
 
-interface GMBSectionProps {
-  data: GMBMetrics;
-}
-
-export default function GMBSection({ data }: GMBSectionProps) {
+export default function GMBSection({ data }: { data: GMBMetrics }) {
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2.5">
@@ -27,21 +23,13 @@ export default function GMBSection({ data }: GMBSectionProps) {
             </svg>
           </div>
           <h3 className="text-base font-bold text-white">GMB Profile</h3>
-          <div className="ml-auto flex items-center gap-3">
-            <div className="glass px-3 py-1 rounded-full">
-              <span className="text-white text-xs font-semibold">Calls: {formatNumber(data.calls)}</span>
-            </div>
-            <div className="glass px-3 py-1 rounded-full">
-              <span className="text-white text-xs font-semibold">Directions: {formatNumber(data.directionRequests)}</span>
-            </div>
-          </div>
         </div>
         <div className="p-5">
           <div className="grid grid-cols-2 gap-3">
-            <StatCard label="Profile Views" value={formatNumber(data.profileViews)} />
-            <StatCard label="Search Impressions" value={formatNumber(data.searchImpressions)} />
-            <StatCard label="Business Interactions" value={formatNumber(data.businessInteractions)} />
-            <StatCard label="Clicks" value={formatNumber(data.clicks)} />
+            <StatCard label="Profile Interactions" value={formatNumber(data.profileInteractions)} />
+            <StatCard label="Views"                value={formatNumber(data.views)} />
+            <StatCard label="Searches"             value={formatNumber(data.searches)} />
+            <StatCard label="Number of Reviews"    value={formatNumber(data.numberOfReviews)} />
           </div>
         </div>
       </div>

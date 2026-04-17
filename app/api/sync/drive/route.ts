@@ -66,6 +66,14 @@ async function upsertReportRow(clientId: string, row: ParsedReportRow) {
     });
   }
 
+  if (row.emailMarketing) {
+    await prisma.emailMarketingData.upsert({
+      where: { reportId: report.id },
+      update: row.emailMarketing,
+      create: { reportId: report.id, ...row.emailMarketing },
+    });
+  }
+
   return row.period;
 }
 

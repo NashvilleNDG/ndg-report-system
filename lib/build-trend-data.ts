@@ -9,13 +9,13 @@ import type { TrendChartConfig } from "@/components/reports/TrendChart";
 interface HistoricalReport {
   period: string;
   socialMedia?: {
-    instagram?: { followers?: number | null } | null;
-    facebook?: { followers?: number | null } | null;
-    youtube?: { subscribers?: number | null } | null;
-    tiktok?: { followers?: number | null } | null;
+    instagram?: { follows?: number | null } | null;
+    facebook?:  { follows?: number | null } | null;
+    youtube?:   { subscribers?: number | null } | null;
+    tiktok?:    { follows?: number | null } | null;
   } | null;
-  websiteData?: { sessions?: number | null } | null;
-  gmbData?: { profileViews?: number | null } | null;
+  websiteData?: { views?: number | null } | null;
+  gmbData?:     { views?: number | null } | null;
 }
 
 function shortLabel(period: string): string {
@@ -26,8 +26,6 @@ function shortLabel(period: string): string {
 
 export function buildTrendData(reports: HistoricalReport[]): TrendChartConfig[] {
   const charts: TrendChartConfig[] = [];
-
-  // ── Helpers ──────────────────────────────────────────────────────────────────
 
   function makeSeries(
     id: string,
@@ -40,71 +38,20 @@ export function buildTrendData(reports: HistoricalReport[]): TrendChartConfig[] 
       label: shortLabel(r.period),
       value: extract(r) ?? null,
     }));
-    // Only add if at least 2 points have real data
-    const nonNull = data.filter((d) => d.value != null).length;
-    if (nonNull < 1) return null;
+    if (data.filter((d) => d.value != null).length < 1) return null;
     return { id, title, metric, color, data };
   }
 
-  // ── Social Media ─────────────────────────────────────────────────────────────
+  const instagram = makeSeries("instagram-follows",    "Instagram Follows",      "Follows",       "#e1306c", (r) => r.socialMedia?.instagram?.follows);
+  const facebook  = makeSeries("facebook-follows",     "Facebook Follows",       "Follows",       "#1877f2", (r) => r.socialMedia?.facebook?.follows);
+  const youtube   = makeSeries("youtube-subscribers",  "YouTube Subscribers",    "Subscribers",   "#ff0000", (r) => r.socialMedia?.youtube?.subscribers);
+  const tiktok    = makeSeries("tiktok-follows",       "TikTok Follows",         "Follows",       "#010101", (r) => r.socialMedia?.tiktok?.follows);
+  const website   = makeSeries("website-views",        "Website Views",          "Views",         "#0d9488", (r) => r.websiteData?.views);
+  const gmb       = makeSeries("gmb-views",            "Google Business Views",  "Views",         "#ea580c", (r) => r.gmbData?.views);
 
-  const instagram = makeSeries(
-    "instagram-followers",
-    "Instagram Followers",
-    "Followers",
-    "#e1306c",
-    (r) => r.socialMedia?.instagram?.followers
-  );
-  if (instagram) charts.push(instagram);
-
-  const facebook = makeSeries(
-    "facebook-followers",
-    "Facebook Followers",
-    "Followers",
-    "#1877f2",
-    (r) => r.socialMedia?.facebook?.followers
-  );
-  if (facebook) charts.push(facebook);
-
-  const youtube = makeSeries(
-    "youtube-subscribers",
-    "YouTube Subscribers",
-    "Subscribers",
-    "#ff0000",
-    (r) => r.socialMedia?.youtube?.subscribers
-  );
-  if (youtube) charts.push(youtube);
-
-  const tiktok = makeSeries(
-    "tiktok-followers",
-    "TikTok Followers",
-    "Followers",
-    "#010101",
-    (r) => r.socialMedia?.tiktok?.followers
-  );
-  if (tiktok) charts.push(tiktok);
-
-  // ── Website ──────────────────────────────────────────────────────────────────
-
-  const website = makeSeries(
-    "website-sessions",
-    "Website Sessions",
-    "Sessions",
-    "#0d9488",
-    (r) => r.websiteData?.sessions
-  );
-  if (website) charts.push(website);
-
-  // ── GMB ───────────────────────────────────────────────────────────────────────
-
-  const gmb = makeSeries(
-    "gmb-views",
-    "Google Business Views",
-    "Profile Views",
-    "#ea580c",
-    (r) => r.gmbData?.profileViews
-  );
-  if (gmb) charts.push(gmb);
+  for (const c of [instagram, facebook, youtube, tiktok, website, gmb]) {
+    if (c) charts.push(c);
+  }
 
   return charts;
 }
