@@ -35,14 +35,14 @@ export function SkeletonRow({ cols = 4 }: { cols?: number }) {
   );
 }
 
-/** Full table skeleton */
+/** Full table skeleton — renders rows only (no tbody wrapper; parent supplies it) */
 export function SkeletonTable({ rows = 4, cols = 4 }: { rows?: number; cols?: number }) {
   return (
-    <tbody>
+    <>
       {Array.from({ length: rows }).map((_, i) => (
         <SkeletonRow key={i} cols={cols} />
       ))}
-    </tbody>
+    </>
   );
 }
 
