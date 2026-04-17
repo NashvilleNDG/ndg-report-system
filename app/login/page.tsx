@@ -4,34 +4,6 @@ import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 
-// NDG cube mark (matches sidebar)
-function NDGCubeMark() {
-  return (
-    <svg width="40" height="43" viewBox="0 0 52 56" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <linearGradient id="lp-top" x1="0" y1="0" x2="1" y2="0.6" gradientUnits="objectBoundingBox">
-          <stop offset="0%" stopColor="#29d4ff"/>
-          <stop offset="100%" stopColor="#00a8e8"/>
-        </linearGradient>
-        <linearGradient id="lp-right" x1="0" y1="0" x2="0" y2="1" gradientUnits="objectBoundingBox">
-          <stop offset="0%" stopColor="#0090d0"/>
-          <stop offset="100%" stopColor="#0060a8"/>
-        </linearGradient>
-        <linearGradient id="lp-left" x1="0" y1="0" x2="0" y2="1" gradientUnits="objectBoundingBox">
-          <stop offset="0%" stopColor="#6644c0"/>
-          <stop offset="100%" stopColor="#3a1878"/>
-        </linearGradient>
-      </defs>
-      <polygon points="26,2 50,15 26,28 2,15" fill="url(#lp-top)"/>
-      <polygon points="50,15 50,40 26,53 26,28" fill="url(#lp-right)"/>
-      <polygon points="2,15 26,28 26,53 2,40" fill="url(#lp-left)"/>
-      <polygon points="26,6 46,17 26,24 6,17" fill="white" opacity="0.88"/>
-      <polygon points="6,17 13,13 13,18 6,22" fill="#18c8ec"/>
-      <polygon points="39,13 46,17 46,22 39,18" fill="#18c8ec"/>
-    </svg>
-  );
-}
-
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail]           = useState("");
@@ -84,13 +56,14 @@ export default function LoginPage() {
 
             {/* Logo */}
             <div className="flex flex-col items-center mb-7">
-              <div className="mb-4 drop-shadow-md">
-                <NDGCubeMark />
-              </div>
-              <h1 className="text-[18px] font-black tracking-tight text-gray-900 uppercase">
-                Nashville Digital Group
-              </h1>
-              <p className="text-[12px] font-semibold tracking-[0.18em] uppercase mt-0.5"
+              {/* Full NDG logo — plain img avoids Next.js image optimisation issues */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/ndg-logo-transparent.png"
+                alt="Nashville Digital Group"
+                style={{ height: 72, width: "auto", maxWidth: "260px", objectFit: "contain", marginBottom: 10 }}
+              />
+              <p className="text-[12px] font-semibold tracking-[0.18em] uppercase"
                 style={{ color: "#00aeef" }}>
                 Reports Platform
               </p>
