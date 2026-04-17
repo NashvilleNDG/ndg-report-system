@@ -192,12 +192,22 @@ function UserModal({
   );
 }
 
+type RoleFilter = "ALL" | "ADMIN" | "TEAM" | "CLIENT";
+
+const FILTER_TABS: { label: string; value: RoleFilter }[] = [
+  { label: "All", value: "ALL" },
+  { label: "Client", value: "CLIENT" },
+  { label: "Team", value: "TEAM" },
+  { label: "Admin", value: "ADMIN" },
+];
+
 export default function AdminUsersPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(true);
   const [modal, setModal] = useState<{ mode: "create" | "edit"; user?: User } | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [roleFilter, setRoleFilter] = useState<RoleFilter>("ALL");
 
   const fetchAll = async () => {
     setLoading(true);
@@ -218,6 +228,7 @@ export default function AdminUsersPage() {
   };
 
   const clientMap = Object.fromEntries(clients.map((c) => [c.id, c.name]));
+  const filtered = roleFilter === "ALL" ? users : users.filter((u) => u.role === roleFilter);
 
   return (
     <div className="space-y-6 page-content">
@@ -225,7 +236,9 @@ export default function AdminUsersPage() {
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Users</h1>
-          <p className="text-sm text-gray-500 mt-0.5">{users.length} user{users.length !== 1 ? "s" : ""} in the system</p>
+          <p className="text-sm text-gray-500 mt-0.5">
+            {filtered.length} of {users.length} user{users.length !== 1 ? "s" : ""}
+          </p>
         </div>
         <button
           onClick={() => setModal({ mode: "create" })}
@@ -236,6 +249,31 @@ export default function AdminUsersPage() {
           </svg>
           New User
         </button>
+      </div>
+
+      {/* Role filter tabs */}
+      <div className="flex gap-2 flex-wrap">
+        {FILTER_TABS.map((tab) => {
+          const count = tab.value === "ALL" ? users.length : users.filter((u) => u.role === tab.value).length;
+          return (
+            <button
+              key={tab.value}
+              onClick={() => setRoleFilter(tab.value)}
+              className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-colors ${
+                roleFilter === tab.value
+                  ? "bg-indigo-600 text-white shadow-sm"
+                  : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50"
+              }`}
+            >
+              {tab.label}
+              <span className={`text-xs px-1.5 py-0.5 rounded-full font-bold ${
+                roleFilter === tab.value ? "bg-white/20 text-white" : "bg-gray-100 text-gray-500"
+              }`}>
+                {count}
+              </span>
+            </button>
+          );
+        })}
       </div>
 
       {/* Table */}
@@ -252,9 +290,9 @@ export default function AdminUsersPage() {
             <tbody className="divide-y divide-gray-50">
               {loading ? (
                 <SkeletonTable rows={4} cols={6} />
-              ) : users.length === 0 ? (
-                <tr><td colSpan={6} className="px-6 py-12 text-center text-gray-400">No users found.</td></tr>
-              ) : users.map((u) => (
+              ) : filtered.length === 0 ? (
+                <tr><td colSpan={6} className="px-6 py-12 text-center text-gray-400">No {roleFilter !== "ALL" ? roleFilter.toLowerCase() : ""} users found.</td></tr>
+              ) : filtered.map((u) => (
                 <tr key={u.id} className="hover:bg-gray-50/70 transition-colors">
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
