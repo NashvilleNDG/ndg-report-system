@@ -91,8 +91,14 @@ export function parseExcelBuffer(
 ): ParsedReportRow[] {
   const workbook = XLSX.read(buffer, { type: "buffer", cellDates: true });
 
+  if (sheetName && !workbook.Sheets[sheetName]) {
+    throw new Error(
+      `Sheet "${sheetName}" not found in the file. Available sheets: ${workbook.SheetNames.join(", ")}`
+    );
+  }
+
   const sheet = sheetName
-    ? workbook.Sheets[sheetName] ?? workbook.Sheets[workbook.SheetNames[0]]
+    ? workbook.Sheets[sheetName]
     : workbook.Sheets[workbook.SheetNames[0]];
 
   if (!sheet) return [];

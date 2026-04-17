@@ -144,5 +144,5 @@ export async function POST(req: NextRequest) {
     data: { syncStatus: "OK", syncError: null, lastSyncedAt },
   });
 
-  return NextResponse.json({ imported: periods.length, periods, lastSyncedAt });
+  return NextResponse.json({ imported: periods.length, periodsUpserted: periods.length, periods, lastSyncedAt });
 }
