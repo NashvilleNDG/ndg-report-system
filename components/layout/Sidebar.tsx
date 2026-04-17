@@ -1,8 +1,35 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { usePathname } from "next/navigation";
+
+// ── NDG Cube Logo (inline SVG — no image file dependency) ─────────────────────
+function NDGCubeMark({ size = 36 }: { size?: number }) {
+  return (
+    <svg width={size} height={Math.round(size * 1.077)} viewBox="0 0 52 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="sb-top" x1="0" y1="0" x2="1" y2="0.6" gradientUnits="objectBoundingBox">
+          <stop offset="0%" stopColor="#29d4ff"/>
+          <stop offset="100%" stopColor="#00a8e8"/>
+        </linearGradient>
+        <linearGradient id="sb-right" x1="0" y1="0" x2="0" y2="1" gradientUnits="objectBoundingBox">
+          <stop offset="0%" stopColor="#0090d0"/>
+          <stop offset="100%" stopColor="#0060a8"/>
+        </linearGradient>
+        <linearGradient id="sb-left" x1="0" y1="0" x2="0" y2="1" gradientUnits="objectBoundingBox">
+          <stop offset="0%" stopColor="#6644c0"/>
+          <stop offset="100%" stopColor="#3a1878"/>
+        </linearGradient>
+      </defs>
+      <polygon points="26,2 50,15 26,28 2,15"  fill="url(#sb-top)"/>
+      <polygon points="50,15 50,40 26,53 26,28" fill="url(#sb-right)"/>
+      <polygon points="2,15 26,28 26,53 2,40"  fill="url(#sb-left)"/>
+      <polygon points="26,6 46,17 26,24 6,17"  fill="white" opacity="0.88"/>
+      <polygon points="6,17 13,13 13,18 6,22"  fill="#18c8ec"/>
+      <polygon points="39,13 46,17 46,22 39,18" fill="#18c8ec"/>
+    </svg>
+  );
+}
 
 // ── Icons ─────────────────────────────────────────────────────────────────────
 const Icons = {
@@ -99,22 +126,22 @@ export default function Sidebar({ role }: { role: string }) {
 
       {/* ── Logo / Brand ──────────────────────────────────────────────────── */}
       <div className="px-5 py-5 border-b" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
-        {/* Actual NDG logo image (transparent PNG on dark bg) */}
-        <div className="flex items-center justify-center">
-          <Image
-            src="/ndg-logo-transparent.png"
-            alt="Nashville Digital Group"
-            width={190}
-            height={70}
-            style={{ objectFit: "contain", maxHeight: 64 }}
-            priority
-          />
+        <div className="flex items-center gap-3">
+          <NDGCubeMark size={38} />
+          <div>
+            <p className="text-[13px] font-black tracking-tight text-white leading-tight">
+              Nashville
+            </p>
+            <p className="text-[13px] font-black tracking-tight text-white leading-tight">
+              Digital Group
+            </p>
+          </div>
         </div>
 
         {/* App context tag */}
-        <div className="flex items-center gap-2 mt-3">
+        <div className="flex items-center gap-2 mt-3.5">
           <div className="h-px flex-1" style={{ background: "rgba(0,174,239,0.15)" }} />
-          <span className="text-[9.5px] font-bold tracking-[0.2em] uppercase" style={{ color: "rgba(0,174,239,0.45)" }}>
+          <span className="text-[9px] font-bold tracking-[0.2em] uppercase" style={{ color: "rgba(0,174,239,0.5)" }}>
             Reports Platform
           </span>
           <div className="h-px flex-1" style={{ background: "rgba(0,174,239,0.15)" }} />
@@ -202,15 +229,12 @@ export default function Sidebar({ role }: { role: string }) {
 
       {/* ── Footer ────────────────────────────────────────────────────────── */}
       <div className="px-4 py-4 border-t" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
-        {/* Company tagline row */}
-        <div className="flex items-center gap-2 mb-2">
-          <Image
-            src="/ndg-logo-transparent.png"
-            alt="Nashville Digital Group"
-            width={100}
-            height={36}
-            style={{ objectFit: "contain", maxHeight: 28, opacity: 0.5 }}
-          />
+        {/* Mini brand row */}
+        <div className="flex items-center gap-2 mb-3">
+          <NDGCubeMark size={20} />
+          <span className="text-[11px] font-bold tracking-wide" style={{ color: "rgba(255,255,255,0.3)" }}>
+            Nashville Digital Group
+          </span>
         </div>
         {/* Status */}
         <div className="flex items-center justify-between">
