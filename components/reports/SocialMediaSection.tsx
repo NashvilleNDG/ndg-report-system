@@ -57,10 +57,10 @@ const PLATFORMS = [
 function InstagramStats({ d }: { d: InstagramMetrics }) {
   return (
     <div className="grid grid-cols-2 gap-3">
-      <StatCard label="Views"               value={formatNumber(d.views)} />
-      <StatCard label="Content Interactions" value={formatNumber(d.contentInteractions)} />
-      <StatCard label="Follows"             value={formatNumber(d.follows)} />
-      <StatCard label="Number of Posts"     value={formatNumber(d.numberOfPosts)} />
+      <StatCard label="Views"               value={formatNumber(d.views)} accent="pink" />
+      <StatCard label="Content Interactions" value={formatNumber(d.contentInteractions)} accent="pink" />
+      <StatCard label="Follows"             value={formatNumber(d.follows)} accent="pink" />
+      <StatCard label="Number of Posts"     value={formatNumber(d.numberOfPosts)} accent="pink" />
     </div>
   );
 }
@@ -68,10 +68,10 @@ function InstagramStats({ d }: { d: InstagramMetrics }) {
 function FacebookStats({ d }: { d: FacebookMetrics }) {
   return (
     <div className="grid grid-cols-2 gap-3">
-      <StatCard label="Views"               value={formatNumber(d.views)} />
-      <StatCard label="Content Interactions" value={formatNumber(d.contentInteractions)} />
-      <StatCard label="Follows"             value={formatNumber(d.follows)} />
-      <StatCard label="Number of Posts"     value={formatNumber(d.numberOfPosts)} />
+      <StatCard label="Views"               value={formatNumber(d.views)} accent="blue" />
+      <StatCard label="Content Interactions" value={formatNumber(d.contentInteractions)} accent="blue" />
+      <StatCard label="Follows"             value={formatNumber(d.follows)} accent="blue" />
+      <StatCard label="Number of Posts"     value={formatNumber(d.numberOfPosts)} accent="blue" />
     </div>
   );
 }
@@ -79,9 +79,9 @@ function FacebookStats({ d }: { d: FacebookMetrics }) {
 function YouTubeStats({ d }: { d: YouTubeMetrics }) {
   return (
     <div className="grid grid-cols-2 gap-3">
-      <StatCard label="Views"          value={formatNumber(d.views)} />
-      <StatCard label="Subscribers"    value={formatNumber(d.subscribers)} />
-      <StatCard label="Number of Videos" value={formatNumber(d.numberOfVideos)} />
+      <StatCard label="Views"          value={formatNumber(d.views)} accent="red" />
+      <StatCard label="Subscribers"    value={formatNumber(d.subscribers)} accent="red" />
+      <StatCard label="Number of Videos" value={formatNumber(d.numberOfVideos)} accent="red" />
     </div>
   );
 }
@@ -89,10 +89,10 @@ function YouTubeStats({ d }: { d: YouTubeMetrics }) {
 function TikTokStats({ d }: { d: TikTokMetrics }) {
   return (
     <div className="grid grid-cols-2 gap-3">
-      <StatCard label="Views"               value={formatNumber(d.views)} />
-      <StatCard label="Content Interactions" value={formatNumber(d.contentInteractions)} />
-      <StatCard label="Follows"             value={formatNumber(d.follows)} />
-      <StatCard label="Number of Reels"     value={formatNumber(d.numberOfReels)} />
+      <StatCard label="Views"               value={formatNumber(d.views)} accent="indigo" />
+      <StatCard label="Content Interactions" value={formatNumber(d.contentInteractions)} accent="indigo" />
+      <StatCard label="Follows"             value={formatNumber(d.follows)} accent="indigo" />
+      <StatCard label="Number of Reels"     value={formatNumber(d.numberOfReels)} accent="indigo" />
     </div>
   );
 }
@@ -133,13 +133,16 @@ export default function SocialMediaSection({ instagram, facebook, youtube, tikto
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-2.5">
-        <div className="w-8 h-8 bg-indigo-50 rounded-lg flex items-center justify-center">
-          <svg className="w-4 h-4 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+      <div className="flex items-center gap-3">
+        <div className="w-9 h-9 bg-gradient-to-br from-indigo-500 to-violet-600 rounded-xl flex items-center justify-center shadow-sm">
+          <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
           </svg>
         </div>
-        <h2 className="text-base font-bold text-gray-800">Social Media</h2>
+        <div>
+          <h2 className="text-base font-bold text-gray-900 leading-tight">Social Media</h2>
+          <p className="text-xs text-gray-400">Platform performance metrics</p>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">

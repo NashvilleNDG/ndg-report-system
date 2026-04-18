@@ -50,10 +50,13 @@ export default async function ClientReportsPage() {
               >
                 {/* Period Header */}
                 <div className="flex items-start justify-between gap-2">
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${isLatest ? "bg-indigo-600" : "bg-gray-100"}`}>
-                    <svg className={`w-5 h-5 ${isLatest ? "text-white" : "text-gray-400"}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                    </svg>
+                  <div className={`w-12 h-12 rounded-xl flex flex-col items-center justify-center flex-shrink-0 ${isLatest ? "bg-indigo-600" : "bg-gray-100"}`}>
+                    <span className={`text-[10px] font-bold uppercase leading-tight ${isLatest ? "text-indigo-200" : "text-gray-400"}`}>
+                      {new Date(r.period + "-01").toLocaleDateString("en-US", { month: "short" })}
+                    </span>
+                    <span className={`text-base font-black leading-tight ${isLatest ? "text-white" : "text-gray-600"}`}>
+                      {r.period.split("-")[0].slice(2)}
+                    </span>
                   </div>
                   {isLatest && (
                     <span className="bg-indigo-100 text-indigo-700 text-xs font-semibold px-2.5 py-1 rounded-full border border-indigo-200">
@@ -67,9 +70,12 @@ export default async function ClientReportsPage() {
                   <h3 className={`text-base font-bold ${isLatest ? "text-indigo-900" : "text-gray-800"} group-hover:text-indigo-700 transition-colors`}>
                     {periodLabel(r.period)}
                   </h3>
-                  <p className="text-xs text-gray-400 mt-1">
-                    Published: {r.publishedAt ? new Date(r.publishedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "—"}
-                  </p>
+                  <div className="flex items-center gap-1.5 text-xs text-gray-400 mt-1">
+                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    {r.publishedAt ? new Date(r.publishedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "—"}
+                  </div>
                 </div>
 
                 {/* CTA */}

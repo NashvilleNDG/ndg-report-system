@@ -261,6 +261,36 @@ aside ::-webkit-scrollbar-thumb:hover {
   }
 }
 
+/* ---------- Report section dividers ---------- */
+.section-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, #e2e8f0 20%, #e2e8f0 80%, transparent 100%);
+  margin: 1.5rem 0;
+}
+
+/* ---------- Metric card accent (left border color helpers) ---------- */
+.metric-card {
+  position: relative;
+  background: white;
+  border-radius: 0.75rem;
+  border: 1px solid #f0f0f0;
+  padding: 1rem;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+.metric-card:hover {
+  box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+  transform: translateY(-2px);
+}
+
+/* ---------- Better scrollbar for report pages ---------- */
+.report-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+.report-scroll::-webkit-scrollbar-thumb {
+  background: #c7d2fe;
+  border-radius: 99px;
+}
+
 /* ---------- Print styles ---------- */
 @media print {
   .no-print {

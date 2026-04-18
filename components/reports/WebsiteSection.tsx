@@ -5,13 +5,16 @@ import type { WebsiteMetrics } from "@/types/report";
 export default function WebsiteSection({ data }: { data: WebsiteMetrics }) {
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-2.5">
-        <div className="w-8 h-8 bg-teal-50 rounded-lg flex items-center justify-center">
-          <svg className="w-4 h-4 text-teal-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+      <div className="flex items-center gap-3">
+        <div className="w-9 h-9 bg-gradient-to-br from-teal-500 to-cyan-600 rounded-xl flex items-center justify-center shadow-sm">
+          <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
           </svg>
         </div>
-        <h2 className="text-base font-bold text-gray-800">Website Performance</h2>
+        <div>
+          <h2 className="text-base font-bold text-gray-900 leading-tight">Website Performance</h2>
+          <p className="text-xs text-gray-400">Traffic &amp; engagement analytics</p>
+        </div>
       </div>
 
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover-lift">
@@ -25,10 +28,10 @@ export default function WebsiteSection({ data }: { data: WebsiteMetrics }) {
         </div>
         <div className="p-5">
           <div className="grid grid-cols-2 gap-3">
-            <StatCard label="Total Users" value={formatNumber(data.totalUsers)} />
-            <StatCard label="New Users"   value={formatNumber(data.newUsers)} />
-            <StatCard label="Views"       value={formatNumber(data.views)} />
-            <StatCard label="Event Count" value={formatNumber(data.eventCount)} />
+            <StatCard label="Total Users" value={formatNumber(data.totalUsers)} accent="teal" />
+            <StatCard label="New Users"   value={formatNumber(data.newUsers)} accent="teal" />
+            <StatCard label="Views"       value={formatNumber(data.views)} accent="teal" />
+            <StatCard label="Event Count" value={formatNumber(data.eventCount)} accent="teal" />
           </div>
         </div>
       </div>

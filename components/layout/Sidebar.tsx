@@ -82,7 +82,7 @@ const ROLE_CONFIG: Record<string, { label: string; color: string; border: string
 };
 
 // ── Sidebar ───────────────────────────────────────────────────────────────────
-export default function Sidebar({ role }: { role: string }) {
+export default function Sidebar({ role, name, email }: { role: string; name?: string; email?: string }) {
   const pathname = usePathname();
   const navItems = NAV_MAP[role] ?? [];
   const roleConf = ROLE_CONFIG[role];
@@ -199,15 +199,25 @@ export default function Sidebar({ role }: { role: string }) {
 
       {/* ── Footer ────────────────────────────────────────────────────────── */}
       <div className="px-4 py-4 border-t" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
-        {/* Mini brand row */}
-        <div className="flex items-center gap-2 mb-3">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/ndg-logo-transparent.png"
-            alt="Nashville Digital Group"
-            style={{ height: 22, width: "auto", objectFit: "contain", opacity: 0.45 }}
-          />
-        </div>
+        {/* User profile mini card */}
+        {name && (
+          <div className="flex items-center gap-2.5 mb-3 p-2.5 rounded-xl" style={{ background: "rgba(255,255,255,0.05)" }}>
+            <div
+              className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 font-bold text-sm"
+              style={{
+                background: roleConf?.color ? `${roleConf.color}22` : "rgba(255,255,255,0.1)",
+                color: roleConf?.color ?? "#94a3b8",
+                border: `1px solid ${roleConf?.border ?? "rgba(255,255,255,0.1)"}`,
+              }}
+            >
+              {name.charAt(0).toUpperCase()}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-semibold leading-tight truncate" style={{ color: "rgba(255,255,255,0.75)" }}>{name}</p>
+              {email && <p className="text-[10px] leading-tight truncate mt-0.5" style={{ color: "rgba(255,255,255,0.3)" }}>{email}</p>}
+            </div>
+          </div>
+        )}
         {/* Status */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1.5">
