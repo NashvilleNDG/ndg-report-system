@@ -61,6 +61,7 @@ interface NavItem { href: string; label: string; icon: React.ReactNode }
 const ADMIN_NAV: NavItem[]  = [
   { href: "/admin",          label: "Overview",    icon: Icons.overview  },
   { href: "/admin/clients",  label: "Clients",     icon: Icons.clients   },
+  { href: "/admin/reports",  label: "Reports",     icon: Icons.report    },
   { href: "/admin/users",    label: "Users",       icon: Icons.users     },
   { href: "/admin/settings", label: "Settings",    icon: Icons.settings  },
 ];

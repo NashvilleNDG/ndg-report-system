@@ -137,19 +137,24 @@ export default async function AdminOverviewPage() {
           <p className="text-indigo-200 text-xs mt-1">{totalClients} total accounts</p>
         </div>
 
-        {/* Reports This Month */}
-        <div className="bg-gradient-to-br from-violet-500 to-purple-700 rounded-2xl p-5 text-white shadow-lg shadow-violet-200/50 hover-lift col-span-1">
+        {/* Reports This Month — clickable */}
+        <Link href="/admin/reports" className="bg-gradient-to-br from-violet-500 to-purple-700 rounded-2xl p-5 text-white shadow-lg shadow-violet-200/50 hover-lift col-span-1 block group">
           <div className="flex items-center justify-between mb-4">
             <p className="text-violet-200 text-xs font-semibold uppercase tracking-wide">Reports Created</p>
-            <div className="w-8 h-8 bg-white/15 rounded-lg flex items-center justify-center">
+            <div className="w-8 h-8 bg-white/15 rounded-lg flex items-center justify-center group-hover:bg-white/25 transition-colors">
               <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
               </svg>
             </div>
           </div>
           <p className="text-4xl font-black tabular-nums">{reportsThisMonth}</p>
-          <p className="text-violet-200 text-xs mt-1">This month</p>
-        </div>
+          <p className="text-violet-200 text-xs mt-1 flex items-center gap-1">
+            This month
+            <svg className="w-3 h-3 opacity-60 group-hover:translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+            </svg>
+          </p>
+        </Link>
 
         {/* Published This Month */}
         <div className="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl p-5 text-white shadow-lg shadow-emerald-200/50 hover-lift col-span-1">
