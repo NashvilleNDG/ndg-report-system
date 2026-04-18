@@ -58,5 +58,9 @@ function redirectToDashboard(role: string, origin: string) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|public).*)"],
+  // Exclude Next.js internals, api/auth, AND all static file extensions
+  // so public assets (logo, images, fonts) are never intercepted.
+  matcher: [
+    "/((?!_next/static|_next/image|favicon\\.ico|api/auth|.*\\.png|.*\\.jpg|.*\\.jpeg|.*\\.gif|.*\\.svg|.*\\.ico|.*\\.webp|.*\\.woff2?).*)",
+  ],
 };
