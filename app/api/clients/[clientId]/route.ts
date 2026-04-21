@@ -77,13 +77,20 @@ export async function DELETE(
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const client = await prisma.client.findUnique({ where: { id: clientId } });
+  const client = await prisma.client.findUnique({
+    where: { id: clientId },
+    include: { _count: { select: { reports: true } } },
+  });
   if (!client) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  const updated = await prisma.client.update({
-    where: { id: clientId },
-    data: { isActive: false },
+  // Unlink any users assigned to this client (don't delete the user accounts)
+  await prisma.user.updateMany({
+    where: { clientId },
+    data:  { clientId: null },
   });
 
-  return NextResponse.json(updated);
+  // Delete the client — cascades to Reports, DriveConfig, and all nested data
+  await prisma.client.delete({ where: { id: clientId } });
+
+  return NextResponse.json({ success: true, deletedReports: client._count.reports });
 }
