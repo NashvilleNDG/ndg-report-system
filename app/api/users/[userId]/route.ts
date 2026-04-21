@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { updateUserSchema } from "@/lib/validators";
 import bcrypt from "bcryptjs";
+import { OWNER_EMAIL } from "@/lib/constants";
 
 export async function GET(
   req: NextRequest,
@@ -42,6 +43,20 @@ export async function PUT(
   if (!user) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   const body = await req.json();
+
+  // Owner account — role and email are locked
+  if (user.email === OWNER_EMAIL) {
+    if (body.role && body.role !== "ADMIN") {
+      return NextResponse.json({ error: "The system owner role cannot be changed." }, { status: 403 });
+    }
+    if (body.email && body.email !== OWNER_EMAIL) {
+      return NextResponse.json({ error: "The system owner email cannot be changed." }, { status: 403 });
+    }
+    // Force role/email to stay correct even if passed
+    body.role  = "ADMIN";
+    body.email = OWNER_EMAIL;
+  }
+
   const parsed = updateUserSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 422 });
@@ -88,6 +103,10 @@ export async function DELETE(
 
   const user = await prisma.user.findUnique({ where: { id: userId } });
   if (!user) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
+  if (user.email === OWNER_EMAIL) {
+    return NextResponse.json({ error: "The system owner account cannot be deleted." }, { status: 403 });
+  }
 
   await prisma.user.delete({ where: { id: userId } });
 

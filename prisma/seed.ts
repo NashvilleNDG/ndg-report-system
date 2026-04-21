@@ -22,9 +22,21 @@ function createPrismaClient() {
 const prisma = createPrismaClient();
 
 async function main() {
-  const adminPassword = await bcrypt.hash("admin123", 10);
-  const teamPassword = await bcrypt.hash("team123", 10);
+  const adminPassword  = await bcrypt.hash("admin123", 10);
+  const teamPassword   = await bcrypt.hash("team123", 10);
   const clientPassword = await bcrypt.hash("client123", 10);
+
+  // ── Owner / super-admin (cannot be deleted or demoted) ──────────────────────
+  await prisma.user.upsert({
+    where:  { email: "suraj@nashvilledigitalgroup.com" },
+    update: { role: Role.ADMIN },          // always keep as ADMIN on re-seed
+    create: {
+      name:         "Suraj",
+      email:        "suraj@nashvilledigitalgroup.com",
+      passwordHash: adminPassword,
+      role:         Role.ADMIN,
+    },
+  });
 
   // Admin user
   await prisma.user.upsert({

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { SkeletonTable } from "@/components/ui/Skeleton";
+import { OWNER_EMAIL } from "@/lib/constants";
 
 interface User {
   id: string;
@@ -42,6 +43,8 @@ function UserModal({
   onClose: () => void;
   onDone: () => void;
 }) {
+  const isOwner = mode === "edit" && user?.email === OWNER_EMAIL;
+
   const [form, setForm] = useState({
     name: user?.name ?? "",
     email: user?.email ?? "",
@@ -102,6 +105,16 @@ function UserModal({
           </button>
         </div>
         <div className="px-6 py-5">
+          {/* Owner notice */}
+          {isOwner && (
+            <div className="mb-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 px-4 py-3 text-sm flex items-center gap-2">
+              <svg className="w-4 h-4 flex-shrink-0 text-amber-500" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+              </svg>
+              <span>System owner — email and role are locked and cannot be changed.</span>
+            </div>
+          )}
+
           {error && (
             <div className="mb-4 rounded-xl bg-red-50 border border-red-200 text-red-700 px-4 py-3 text-sm flex items-center gap-2">
               <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -128,8 +141,13 @@ function UserModal({
                 type="email"
                 required
                 value={form.email}
-                onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
-                className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-gray-50 hover:bg-white transition-colors"
+                readOnly={isOwner}
+                onChange={(e) => !isOwner && setForm((f) => ({ ...f, email: e.target.value }))}
+                className={`w-full border rounded-xl px-4 py-2.5 text-sm focus:outline-none bg-gray-50 transition-colors ${
+                  isOwner
+                    ? "border-gray-200 text-gray-400 cursor-not-allowed select-none"
+                    : "border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent hover:bg-white"
+                }`}
                 placeholder="john@example.com"
               />
             </div>
@@ -154,8 +172,13 @@ function UserModal({
               <label className="block text-sm font-medium text-gray-700 mb-1.5">Role</label>
               <select
                 value={form.role}
-                onChange={(e) => setForm((f) => ({ ...f, role: e.target.value as "ADMIN" | "TEAM" | "CLIENT", clientId: "" }))}
-                className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-gray-50 hover:bg-white transition-colors"
+                disabled={isOwner}
+                onChange={(e) => !isOwner && setForm((f) => ({ ...f, role: e.target.value as "ADMIN" | "TEAM" | "CLIENT", clientId: "" }))}
+                className={`w-full border rounded-xl px-4 py-2.5 text-sm focus:outline-none bg-gray-50 transition-colors ${
+                  isOwner
+                    ? "border-gray-200 text-gray-400 cursor-not-allowed opacity-70"
+                    : "border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent hover:bg-white"
+                }`}
               >
                 <option value="ADMIN">Administrator</option>
                 <option value="TEAM">Team Member</option>
@@ -292,14 +315,33 @@ export default function AdminUsersPage() {
                 <SkeletonTable rows={4} cols={6} />
               ) : filtered.length === 0 ? (
                 <tr><td colSpan={6} className="px-6 py-12 text-center text-gray-400">No {roleFilter !== "ALL" ? roleFilter.toLowerCase() : ""} users found.</td></tr>
-              ) : filtered.map((u) => (
-                <tr key={u.id} className="hover:bg-gray-50/70 transition-colors">
+              ) : filtered.map((u) => {
+                const isOwnerRow = u.email === OWNER_EMAIL;
+                return (
+                <tr key={u.id} className={`hover:bg-gray-50/70 transition-colors ${isOwnerRow ? "bg-amber-50/30" : ""}`}>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
-                      <div className={`w-9 h-9 bg-gradient-to-br ${ROLE_AVATAR[u.role] ?? "from-gray-400 to-gray-600"} rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm`}>
-                        <span className="text-white font-bold text-sm">{u.name.charAt(0).toUpperCase()}</span>
+                      <div className="relative">
+                        <div className={`w-9 h-9 bg-gradient-to-br ${ROLE_AVATAR[u.role] ?? "from-gray-400 to-gray-600"} rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm`}>
+                          <span className="text-white font-bold text-sm">{u.name.charAt(0).toUpperCase()}</span>
+                        </div>
+                        {/* Crown badge for owner */}
+                        {isOwnerRow && (
+                          <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-amber-400 rounded-full flex items-center justify-center shadow-sm" title="System Owner">
+                            <svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                            </svg>
+                          </span>
+                        )}
                       </div>
-                      <span className="font-semibold text-gray-900">{u.name}</span>
+                      <div>
+                        <span className="font-semibold text-gray-900">{u.name}</span>
+                        {isOwnerRow && (
+                          <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded text-xs font-bold bg-amber-100 text-amber-700 border border-amber-200">
+                            Owner
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </td>
                   <td className="px-6 py-4 text-gray-500">{u.email}</td>
@@ -314,23 +356,35 @@ export default function AdminUsersPage() {
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-2">
+                      {/* Edit — always allowed (password change etc), but modal locks sensitive fields */}
                       <button
                         onClick={() => setModal({ mode: "edit", user: u })}
                         className="inline-flex items-center gap-1 text-xs font-semibold text-indigo-600 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-lg transition-colors"
                       >
                         Edit
                       </button>
-                      <button
-                        onClick={() => handleDelete(u.id)}
-                        disabled={deletingId === u.id}
-                        className="inline-flex items-center gap-1 text-xs font-semibold text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
-                      >
-                        {deletingId === u.id ? "…" : "Delete"}
-                      </button>
+                      {/* Delete — hidden for owner */}
+                      {!isOwnerRow ? (
+                        <button
+                          onClick={() => handleDelete(u.id)}
+                          disabled={deletingId === u.id}
+                          className="inline-flex items-center gap-1 text-xs font-semibold text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
+                        >
+                          {deletingId === u.id ? "…" : "Delete"}
+                        </button>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 text-xs font-medium text-amber-600 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-lg cursor-default" title="System owner cannot be deleted">
+                          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                          </svg>
+                          Protected
+                        </span>
+                      )}
                     </div>
                   </td>
                 </tr>
-              ))}
+                );
+              })}
             </tbody>
           </table>
         </div>
