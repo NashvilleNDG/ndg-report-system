@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { createUserSchema } from "@/lib/validators";
 import bcrypt from "bcryptjs";
+import { sendInviteEmail } from "@/lib/mailer";
 
 export async function GET(req: NextRequest) {
   const session = await auth();
@@ -64,10 +65,28 @@ export async function POST(req: NextRequest) {
         email,
         passwordHash,
         role,
-        clientId: clientId || null, // treat empty string as null
+        clientId: clientId || null,
       },
       select: { id: true, name: true, email: true, role: true, clientId: true, createdAt: true },
     });
+
+    // Send invite email (non-fatal — user is created regardless)
+    const baseUrl = (process.env.NEXTAUTH_URL && process.env.NEXTAUTH_URL !== "true")
+      ? process.env.NEXTAUTH_URL
+      : "https://ndg-report-system.onrender.com";
+
+    try {
+      await sendInviteEmail({
+        to: email,
+        name,
+        role,
+        password,           // plain-text password before hashing
+        loginUrl: `${baseUrl}/login`,
+      });
+      console.log(`[INVITE] Email sent to ${email}`);
+    } catch (mailErr) {
+      console.error(`[INVITE] Failed to send invite email to ${email}:`, mailErr);
+    }
 
     return NextResponse.json(user, { status: 201 });
   } catch (err) {
