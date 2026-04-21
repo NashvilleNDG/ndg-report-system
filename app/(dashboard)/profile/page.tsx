@@ -11,15 +11,15 @@ interface Me {
 
 const ROLE_LABELS: Record<string, string> = {
   ADMIN: "Administrator",
-  TEAM: "Team Member",
-  CLIENT: "Client",
+  TEAM:  "Team Member",
+  CLIENT:"Client",
 };
 
-const ROLE_CONFIG: Record<string, { gradient: string; badge: string; dot: string; ring: string }> = {
-  ADMIN:  { gradient: "from-violet-600 via-purple-600 to-indigo-700",  badge: "bg-violet-100 text-violet-700 border-violet-200",  dot: "bg-violet-500", ring: "ring-violet-200"  },
-  TEAM:   { gradient: "from-sky-500 via-blue-600 to-cyan-600",         badge: "bg-sky-100 text-sky-700 border-sky-200",             dot: "bg-sky-500",    ring: "ring-sky-200"    },
-  CLIENT: { gradient: "from-emerald-500 via-teal-600 to-green-600",    badge: "bg-emerald-100 text-emerald-700 border-emerald-200", dot: "bg-emerald-500",ring: "ring-emerald-200"},
-};
+// NDG brand palette — same colours as the sidebar/logo
+const NDG_DARK  = "#0b1628";
+const NDG_MID   = "#0d2240";
+const NDG_CYAN  = "#00aeef";
+const NDG_CYAN2 = "#00c2f0";
 
 function EyeIcon({ open }: { open: boolean }) {
   return open ? (
@@ -52,12 +52,18 @@ function PasswordField({
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
-          className="w-full border border-gray-200 rounded-xl px-4 py-2.5 pr-11 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent bg-gray-50/70 hover:bg-white transition-colors"
+          className="w-full border border-gray-200 rounded-xl px-4 py-2.5 pr-11 text-sm bg-gray-50/70 hover:bg-white transition-colors outline-none"
+          style={{ ["--tw-ring-color" as string]: NDG_CYAN }}
+          onFocus={e => (e.currentTarget.style.boxShadow = `0 0 0 2px ${NDG_CYAN}40`, e.currentTarget.style.borderColor = NDG_CYAN)}
+          onBlur={e  => (e.currentTarget.style.boxShadow = "",                         e.currentTarget.style.borderColor = "")}
         />
         <button
           type="button"
           onClick={() => setShow((s) => !s)}
-          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+          className="absolute right-3 top-1/2 -translate-y-1/2 transition-colors"
+          style={{ color: "rgba(0,174,239,0.5)" }}
+          onMouseEnter={e => ((e.currentTarget as HTMLElement).style.color = NDG_CYAN)}
+          onMouseLeave={e => ((e.currentTarget as HTMLElement).style.color = "rgba(0,174,239,0.5)")}
           tabIndex={-1}
         >
           <EyeIcon open={show} />
@@ -99,7 +105,8 @@ export default function ProfilePage() {
     }
   };
 
-  const cfg = me?.role ? (ROLE_CONFIG[me.role] ?? ROLE_CONFIG.ADMIN) : ROLE_CONFIG.ADMIN;
+  const roleLabel = me?.role ? (ROLE_LABELS[me.role] ?? me.role) : "—";
+  const initial   = me?.name?.charAt(0).toUpperCase() ?? "?";
 
   return (
     <div className="max-w-2xl mx-auto space-y-5 page-content">
@@ -107,92 +114,106 @@ export default function ProfilePage() {
       {/* ── Profile Hero ───────────────────────────────────────────────────── */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
 
-        {/* Banner with mesh overlay */}
-        <div className={`relative h-32 bg-gradient-to-br ${cfg.gradient}`}>
-          {/* Subtle dot pattern */}
-          <svg className="absolute inset-0 w-full h-full opacity-[0.07]" xmlns="http://www.w3.org/2000/svg">
+        {/* Banner — NDG dark navy → cyan */}
+        <div className="relative h-32 overflow-hidden" style={{ background: `linear-gradient(135deg, ${NDG_DARK} 0%, ${NDG_MID} 50%, #0a3a5c 100%)` }}>
+          {/* Cyan glow streak */}
+          <div className="absolute inset-0" style={{ background: `radial-gradient(ellipse 60% 80% at 80% 50%, ${NDG_CYAN}22 0%, transparent 70%)` }} />
+          {/* Dot pattern */}
+          <svg className="absolute inset-0 w-full h-full" style={{ opacity: 0.07 }} xmlns="http://www.w3.org/2000/svg">
             <defs>
-              <pattern id="dots" width="20" height="20" patternUnits="userSpaceOnUse">
-                <circle cx="2" cy="2" r="1.5" fill="white"/>
+              <pattern id="ndg-dots" width="20" height="20" patternUnits="userSpaceOnUse">
+                <circle cx="2" cy="2" r="1.5" fill={NDG_CYAN}/>
               </pattern>
             </defs>
-            <rect width="100%" height="100%" fill="url(#dots)" />
+            <rect width="100%" height="100%" fill="url(#ndg-dots)" />
           </svg>
-          {/* Glow blobs */}
-          <div className="absolute -top-8 -right-8 w-40 h-40 rounded-full bg-white opacity-10 blur-3xl" />
-          <div className="absolute -bottom-4 left-1/4 w-48 h-20 rounded-full bg-white opacity-10 blur-2xl" />
+          {/* Cyan accent line at bottom */}
+          <div className="absolute bottom-0 left-0 right-0 h-[2px]" style={{ background: `linear-gradient(90deg, transparent, ${NDG_CYAN}80, transparent)` }} />
         </div>
 
-        {/* Avatar + role badge row */}
+        {/* Avatar + role badge */}
         <div className="px-6 flex items-end justify-between mb-5" style={{ marginTop: "-38px" }}>
-          {/* Avatar: circle with thick white ring and strong shadow */}
+          {/* Avatar */}
           <div className="relative">
-            {/* Outer white ring */}
+            {/* White ring */}
             <div className="w-[78px] h-[78px] rounded-full bg-white flex items-center justify-center shadow-2xl">
-              {/* Inner gradient circle */}
-              <div className={`w-[66px] h-[66px] bg-gradient-to-br ${cfg.gradient} rounded-full flex items-center justify-center`}>
-                <span className="text-white font-black text-2xl tracking-tight select-none"
-                  style={{ textShadow: "0 2px 8px rgba(0,0,0,0.25)" }}>
-                  {me?.name?.charAt(0).toUpperCase() ?? "?"}
+              {/* NDG gradient inner circle */}
+              <div className="w-[66px] h-[66px] rounded-full flex items-center justify-center"
+                style={{ background: `linear-gradient(135deg, ${NDG_MID}, #0a3a5c, ${NDG_CYAN}cc)` }}>
+                <span className="font-black text-2xl tracking-tight select-none"
+                  style={{ color: "#fff", textShadow: `0 0 16px ${NDG_CYAN}, 0 2px 8px rgba(0,0,0,0.4)` }}>
+                  {initial}
                 </span>
               </div>
             </div>
-            {/* Online indicator dot */}
-            <span className="absolute bottom-1 right-1 w-3.5 h-3.5 bg-emerald-400 border-2 border-white rounded-full shadow-sm" />
+            {/* Online dot */}
+            <span className="absolute bottom-1 right-1 w-3.5 h-3.5 border-2 border-white rounded-full shadow-sm"
+              style={{ background: "#34d399" }} />
           </div>
 
-          <div className={`mb-1 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border ${cfg.badge}`}>
-            <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />
-            {me?.role ? (ROLE_LABELS[me.role] ?? me.role) : "—"}
+          {/* Role badge — NDG cyan style */}
+          <div className="mb-1 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border"
+            style={{ color: NDG_CYAN, borderColor: `${NDG_CYAN}40`, background: `${NDG_CYAN}10` }}>
+            <span className="w-1.5 h-1.5 rounded-full" style={{ background: NDG_CYAN }} />
+            {roleLabel}
           </div>
         </div>
 
         {/* Name + email */}
         <div className="px-6 pb-1">
           <h1 className="text-xl font-bold text-gray-900 leading-tight">{me?.name ?? "—"}</h1>
-          <p className="text-sm text-gray-400 mt-0.5">{me?.email ?? "—"}</p>
+          <p className="text-sm mt-0.5" style={{ color: NDG_CYAN + "99" }}>{me?.email ?? "—"}</p>
         </div>
 
         {/* Info rows */}
-        <div className="mx-6 mt-5 mb-6 rounded-xl border border-gray-100 bg-gray-50/60 divide-y divide-gray-100 overflow-hidden">
-          {/* Full name */}
+        <div className="mx-6 mt-5 mb-6 rounded-xl border overflow-hidden divide-y"
+          style={{ borderColor: `${NDG_CYAN}18`, divideColor: `${NDG_CYAN}10`, background: `${NDG_DARK}05` }}>
+
+          {/* Full Name */}
           <div className="flex items-center gap-3 px-4 py-3">
-            <div className="w-8 h-8 rounded-lg bg-white border border-gray-100 shadow-sm flex items-center justify-center flex-shrink-0">
-              <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 border"
+              style={{ background: `${NDG_CYAN}10`, borderColor: `${NDG_CYAN}25`, color: NDG_CYAN }}>
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
               </svg>
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-[10.5px] text-gray-400 font-semibold uppercase tracking-wider">Full Name</p>
+              <p className="text-[10.5px] font-semibold uppercase tracking-wider" style={{ color: NDG_CYAN + "80" }}>Full Name</p>
               <p className="text-sm text-gray-800 font-semibold mt-0.5 truncate">{me?.name ?? "—"}</p>
             </div>
           </div>
+
           {/* Email */}
           <div className="flex items-center gap-3 px-4 py-3">
-            <div className="w-8 h-8 rounded-lg bg-white border border-gray-100 shadow-sm flex items-center justify-center flex-shrink-0">
-              <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 border"
+              style={{ background: `${NDG_CYAN}10`, borderColor: `${NDG_CYAN}25`, color: NDG_CYAN }}>
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
               </svg>
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-[10.5px] text-gray-400 font-semibold uppercase tracking-wider">Email Address</p>
+              <p className="text-[10.5px] font-semibold uppercase tracking-wider" style={{ color: NDG_CYAN + "80" }}>Email Address</p>
               <p className="text-sm text-gray-800 font-semibold mt-0.5 truncate">{me?.email ?? "—"}</p>
             </div>
             <span className="flex-shrink-0 inline-flex items-center gap-1 text-[10.5px] font-semibold text-emerald-600 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-full">
-              <svg className="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/></svg>
+              <svg className="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
+              </svg>
               Verified
             </span>
           </div>
+
           {/* Role */}
           <div className="flex items-center gap-3 px-4 py-3">
-            <div className="w-8 h-8 rounded-lg bg-white border border-gray-100 shadow-sm flex items-center justify-center flex-shrink-0">
-              <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 border"
+              style={{ background: `${NDG_CYAN}10`, borderColor: `${NDG_CYAN}25`, color: NDG_CYAN }}>
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
               </svg>
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-[10.5px] text-gray-400 font-semibold uppercase tracking-wider">Account Role</p>
-              <p className="text-sm text-gray-800 font-semibold mt-0.5">{me?.role ? (ROLE_LABELS[me.role] ?? me.role) : "—"}</p>
+              <p className="text-[10.5px] font-semibold uppercase tracking-wider" style={{ color: NDG_CYAN + "80" }}>Account Role</p>
+              <p className="text-sm text-gray-800 font-semibold mt-0.5">{roleLabel}</p>
             </div>
           </div>
         </div>
@@ -200,10 +221,12 @@ export default function ProfilePage() {
 
       {/* ── Security / Change Password ──────────────────────────────────────── */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+
         {/* Section header */}
         <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-blue-600 flex items-center justify-center shadow-sm flex-shrink-0">
-            <svg className="w-4.5 h-4.5 w-[18px] h-[18px] text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <div className="w-9 h-9 rounded-xl flex items-center justify-center shadow-sm flex-shrink-0"
+            style={{ background: `linear-gradient(135deg, ${NDG_MID}, ${NDG_CYAN})` }}>
+            <svg className="w-[18px] h-[18px] text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
             </svg>
           </div>
@@ -211,7 +234,8 @@ export default function ProfilePage() {
             <h2 className="text-sm font-bold text-gray-900">Security Settings</h2>
             <p className="text-xs text-gray-400 mt-0.5">Update your account password</p>
           </div>
-          <div className="ml-auto flex items-center gap-1.5 text-[10.5px] font-semibold text-gray-400 bg-gray-50 border border-gray-100 px-2.5 py-1 rounded-lg">
+          <div className="ml-auto flex items-center gap-1.5 text-[10.5px] font-semibold px-2.5 py-1 rounded-lg border"
+            style={{ color: NDG_CYAN, background: `${NDG_CYAN}0d`, borderColor: `${NDG_CYAN}30` }}>
             <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
             </svg>
@@ -220,11 +244,12 @@ export default function ProfilePage() {
         </div>
 
         {/* Tip banner */}
-        <div className="mx-6 mt-5 flex items-start gap-2.5 bg-amber-50 border border-amber-100 rounded-xl px-4 py-3">
-          <svg className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <div className="mx-6 mt-5 flex items-start gap-2.5 rounded-xl px-4 py-3 border"
+          style={{ background: `${NDG_CYAN}08`, borderColor: `${NDG_CYAN}28` }}>
+          <svg className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: NDG_CYAN }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
-          <p className="text-xs text-amber-700 leading-relaxed">
+          <p className="text-xs leading-relaxed" style={{ color: NDG_CYAN + "cc" }}>
             Choose a strong password with at least 6 characters. Never share your password with anyone.
           </p>
         </div>
@@ -297,13 +322,17 @@ export default function ProfilePage() {
           )}
 
           <div className="flex items-center justify-between pt-2 border-t border-gray-100">
-            <p className="text-xs text-gray-400">
-              Make sure it&apos;s at least 6 characters long.
-            </p>
+            <p className="text-xs text-gray-400">Must be at least 6 characters long.</p>
             <button
               type="submit"
               disabled={saving}
-              className="inline-flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white px-5 py-2.5 rounded-xl text-sm font-semibold disabled:opacity-60 transition-all shadow-sm shadow-indigo-200 hover:shadow-md hover:shadow-indigo-200"
+              className="inline-flex items-center gap-2 text-white px-5 py-2.5 rounded-xl text-sm font-semibold disabled:opacity-60 transition-all"
+              style={{
+                background: `linear-gradient(135deg, ${NDG_MID}, ${NDG_CYAN})`,
+                boxShadow: `0 4px 14px ${NDG_CYAN}40`,
+              }}
+              onMouseEnter={e => ((e.currentTarget as HTMLElement).style.opacity = "0.9")}
+              onMouseLeave={e => ((e.currentTarget as HTMLElement).style.opacity = "1")}
             >
               {saving ? (
                 <>
