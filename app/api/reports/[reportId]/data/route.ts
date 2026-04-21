@@ -2,6 +2,7 @@ import { auth } from "@/auth";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { reportDataSchema } from "@/lib/validators";
+import { writeBackToDrive } from "@/lib/google-drive";
 import type { Session } from "next-auth";
 
 async function getReportWithAccess(reportId: string, session: Session | null) {
@@ -149,11 +150,40 @@ export async function PUT(
       socialMedia: {
         include: { instagram: true, facebook: true, youtube: true, tiktok: true },
       },
-      websiteData: true,
-      gmbData: true,
+      websiteData:    true,
+      gmbData:        true,
       emailMarketing: true,
     },
   });
+
+  // ── Write back to Google Drive (non-fatal) ────────────────────────────────
+  // If the client has a Drive file connected, sync the updated row back to it.
+  try {
+    const driveConfig = await prisma.driveConfig.findUnique({
+      where: { clientId: report.clientId },
+    });
+
+    if (driveConfig?.driveFileId && updated) {
+      await writeBackToDrive(
+        driveConfig.driveFileId,
+        driveConfig.sheetName ?? null,
+        report.period,
+        {
+          instagram:      updated.socialMedia?.instagram      ?? undefined,
+          facebook:       updated.socialMedia?.facebook       ?? undefined,
+          tiktok:         updated.socialMedia?.tiktok         ?? undefined,
+          youtube:        updated.socialMedia?.youtube        ?? undefined,
+          website:        updated.websiteData                 ?? undefined,
+          gmb:            updated.gmbData                     ?? undefined,
+          emailMarketing: updated.emailMarketing              ?? undefined,
+        },
+      );
+      console.log(`[DRIVE WRITE-BACK] Synced ${report.period} for client ${report.clientId}`);
+    }
+  } catch (driveErr) {
+    // Non-fatal — DB is always the source of truth; Drive write-back is best-effort
+    console.error("[DRIVE WRITE-BACK] Failed (DB save succeeded):", driveErr);
+  }
 
   return NextResponse.json(updated);
 }

@@ -49,7 +49,7 @@ function num(
   return isNaN(n) ? null : n;
 }
 
-function toPeriod(val: string | number | null | undefined | Date): string | null {
+export function toPeriod(val: string | number | null | undefined | Date): string | null {
   if (val == null || val === "") return null;
 
   if (val instanceof Date) {
