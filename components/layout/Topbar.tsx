@@ -5,7 +5,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 interface TopbarProps {
-  user: { name: string; email: string; role: string };
+  user:        { name: string; email: string; role: string };
+  onMenuClick?: () => void;
 }
 
 const PAGE_TITLES: Record<string, string> = {
@@ -38,16 +39,26 @@ const AVATAR_COLORS: Record<string, string> = {
   CLIENT: "bg-emerald-100 text-emerald-700 ring-emerald-200",
 };
 
-export default function Topbar({ user }: TopbarProps) {
+export default function Topbar({ user, onMenuClick }: TopbarProps) {
   const pathname = usePathname();
   const title = getPageTitle(pathname);
   const avatarColor = AVATAR_COLORS[user.role] ?? "bg-indigo-100 text-indigo-700 ring-indigo-200";
 
   return (
-    <header className="h-16 bg-white border-b border-gray-100 flex items-center justify-between px-6 flex-shrink-0 shadow-sm">
-      {/* Page Title */}
-      <div>
-        <h2 className="text-base font-semibold text-gray-800">{title}</h2>
+    <header className="h-14 sm:h-16 bg-white border-b border-gray-100 flex items-center justify-between px-4 sm:px-6 flex-shrink-0 shadow-sm gap-3">
+      {/* Left: hamburger (mobile) + page title */}
+      <div className="flex items-center gap-3 min-w-0">
+        {/* Hamburger — mobile only */}
+        <button
+          onClick={onMenuClick}
+          className="lg:hidden flex-shrink-0 w-9 h-9 flex items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 transition-colors"
+          aria-label="Open menu"
+        >
+          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
+        <h2 className="text-sm sm:text-base font-semibold text-gray-800 truncate">{title}</h2>
       </div>
 
       {/* Right Side */}

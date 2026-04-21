@@ -83,14 +83,18 @@ const ROLE_CONFIG: Record<string, { label: string; color: string; border: string
 };
 
 // ── Sidebar ───────────────────────────────────────────────────────────────────
-export default function Sidebar({ role, name, email }: { role: string; name?: string; email?: string }) {
+export default function Sidebar({
+  role, name, email, onClose,
+}: {
+  role: string; name?: string; email?: string; onClose?: () => void;
+}) {
   const pathname = usePathname();
   const navItems = NAV_MAP[role] ?? [];
   const roleConf = ROLE_CONFIG[role];
 
   return (
     <aside
-      className="w-64 flex-shrink-0 flex flex-col h-full"
+      className="w-72 sm:w-64 flex-shrink-0 flex flex-col h-full"
       style={{
         background: "#0b1628",
         borderRight: "1px solid rgba(255,255,255,0.06)",
@@ -99,14 +103,26 @@ export default function Sidebar({ role, name, email }: { role: string; name?: st
 
       {/* ── Logo / Brand ──────────────────────────────────────────────────── */}
       <div className="px-5 py-5 border-b" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
-        {/* NDG logo image — plain img tag avoids Next.js image optimisation issues */}
-        <div className="flex items-center justify-center">
+        {/* Close button — mobile only */}
+        <div className="flex items-center justify-between lg:block">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/ndg-logo-transparent.png"
             alt="Nashville Digital Group"
-            style={{ height: 56, width: "auto", maxWidth: "100%", objectFit: "contain" }}
+            style={{ height: 48, width: "auto", maxWidth: "160px", objectFit: "contain" }}
           />
+          {onClose && (
+            <button
+              onClick={onClose}
+              className="lg:hidden w-8 h-8 flex items-center justify-center rounded-lg transition-colors flex-shrink-0"
+              style={{ color: "rgba(255,255,255,0.4)", background: "rgba(255,255,255,0.06)" }}
+              aria-label="Close menu"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          )}
         </div>
 
         {/* App context tag */}
@@ -155,6 +171,7 @@ export default function Sidebar({ role, name, email }: { role: string; name?: st
             <Link
               key={item.href}
               href={item.href}
+              onClick={() => onClose?.()}
               className="relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] font-medium transition-all duration-150 group"
               style={
                 active
