@@ -5,6 +5,7 @@
  */
 
 import PDFDocument from "pdfkit";
+import path from "path";
 
 import { periodLabel } from "./report-utils";
 import type {
@@ -241,11 +242,17 @@ function buildPdf(doc: Doc, report: FullReport) {
   // ── Header band ────────────────────────────────────────────────
   doc.rect(0, 0, PW, 68).fillColor(BRAND).fill();
 
-  // Left: brand
-  doc.fillColor(WHITE).font("Helvetica-Bold").fontSize(18)
-     .text("NDG Reports", MARGIN, 16, { lineBreak: false });
-  doc.fillColor("#c7d2fe").font("Helvetica").fontSize(7.5)
-     .text("Nashville Digital Group · Analytics Platform", MARGIN, 40, { lineBreak: false });
+  // Left: logo image (transparent PNG sits over the brand colour band)
+  const logoPath = path.join(process.cwd(), "public", "ndg-logo-transparent.png");
+  try {
+    doc.image(logoPath, MARGIN, 10, { height: 48, fit: [220, 48] });
+  } catch {
+    // Fallback to text if image can't be loaded
+    doc.fillColor(WHITE).font("Helvetica-Bold").fontSize(18)
+       .text("NDG Reports", MARGIN, 16, { lineBreak: false });
+    doc.fillColor("#c7d2fe").font("Helvetica").fontSize(7.5)
+       .text("Nashville Digital Group · Analytics Platform", MARGIN, 40, { lineBreak: false });
+  }
 
   // Right: period + client
   doc.fillColor(WHITE).font("Helvetica-Bold").fontSize(11)
