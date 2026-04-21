@@ -424,13 +424,16 @@ export default function AdminReportsPage() {
                       <div className="w-8 h-8 bg-gradient-to-br from-indigo-400 to-blue-500 rounded-lg flex items-center justify-center flex-shrink-0 shadow-sm">
                         <span className="text-white font-bold text-xs">{r.client.name.charAt(0).toUpperCase()}</span>
                       </div>
-                      <button
-                        onClick={() => setClientFilter(r.clientId)}
-                        className="font-semibold text-gray-900 hover:text-indigo-600 transition-colors text-left"
-                        title={`Filter by ${r.client.name}`}
+                      <Link
+                        href={`/admin/clients/${r.clientId}`}
+                        className="font-semibold text-gray-900 hover:text-indigo-600 transition-colors group flex items-center gap-1"
+                        title={`View ${r.client.name} details`}
                       >
                         {r.client.name}
-                      </button>
+                        <svg className="w-3.5 h-3.5 text-gray-300 group-hover:text-indigo-400 transition-colors -mb-px" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                        </svg>
+                      </Link>
                     </div>
                   </td>
 
