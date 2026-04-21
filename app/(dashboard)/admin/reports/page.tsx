@@ -387,58 +387,89 @@ export default function AdminReportsPage() {
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
 
         {/* ── Mobile cards ── */}
-        <div className="sm:hidden divide-y divide-gray-50">
+        <div className="sm:hidden p-3 space-y-3 bg-gray-50/80">
           {loading ? (
-            <div className="p-4 text-center text-gray-400 text-sm">Loading…</div>
+            <div className="py-10 text-center text-gray-400 text-sm">Loading…</div>
           ) : filtered.length === 0 ? (
-            <div className="p-8 text-center flex flex-col items-center gap-2">
+            <div className="py-10 text-center flex flex-col items-center gap-2">
               <svg className="w-10 h-10 text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
               <p className="text-gray-400 text-sm">No reports match the selected filters.</p>
-              {hasActiveFilters && <button onClick={clearFilters} className="text-indigo-600 text-xs font-semibold hover:underline">Clear filters</button>}
+              {hasActiveFilters && <button onClick={clearFilters} className="text-indigo-600 text-xs font-bold hover:underline">Clear filters</button>}
             </div>
           ) : filtered.map((r) => (
-            <div key={r.id} className="p-4 flex flex-col gap-3">
-              {/* Top: client + status */}
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 bg-gradient-to-br from-indigo-400 to-blue-500 rounded-lg flex items-center justify-center flex-shrink-0 shadow-sm">
-                  <span className="text-white font-bold text-xs">{r.client.name.charAt(0).toUpperCase()}</span>
+            <div key={r.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+              {/* Status accent bar */}
+              <div className={`h-1 w-full ${r.status === "PUBLISHED" ? "bg-gradient-to-r from-emerald-400 to-teal-500" : "bg-gradient-to-r from-amber-400 to-orange-400"}`} />
+              <div className="p-4 flex flex-col gap-4">
+                {/* Header */}
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 to-blue-600 rounded-xl flex items-center justify-center flex-shrink-0 shadow-md">
+                    <span className="text-white font-bold text-lg">{r.client.name.charAt(0).toUpperCase()}</span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <Link href={`/admin/clients/${r.clientId}`} className="font-bold text-gray-900 text-base leading-tight hover:text-indigo-600 transition-colors truncate block">
+                      {r.client.name}
+                    </Link>
+                    <p className="text-xs text-gray-400 mt-0.5">{periodLabel(r.period)}</p>
+                  </div>
+                  <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold flex-shrink-0 ${STATUS_STYLES[r.status]}`}>
+                    <span className={`w-1.5 h-1.5 rounded-full ${STATUS_DOT[r.status]}`} />
+                    {r.status === "PUBLISHED" ? "Published" : "Draft"}
+                  </span>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <Link href={`/admin/clients/${r.clientId}`} className="font-semibold text-gray-900 hover:text-indigo-600 transition-colors flex items-center gap-1">
-                    {r.client.name}
+
+                {/* Meta pills */}
+                <div className="flex flex-wrap gap-2">
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-gray-50 text-gray-500 rounded-lg text-xs border border-gray-100">
+                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    Updated {new Date(r.updatedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                  </span>
+                  {r.publishedAt && (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-50 text-emerald-600 rounded-lg text-xs font-semibold border border-emerald-100">
+                      Published {new Date(r.publishedAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                    </span>
+                  )}
+                </div>
+
+                {/* Divider */}
+                <div className="h-px bg-gray-50" />
+
+                {/* Actions */}
+                <div className="flex gap-2">
+                  <Link
+                    href={`/team/entry/${r.clientId}/${r.period}`}
+                    className="flex-1 inline-flex items-center justify-center gap-1.5 border border-indigo-200 text-indigo-600 text-xs font-bold px-3 py-2.5 rounded-xl bg-indigo-50 active:bg-indigo-100 transition-colors"
+                  >
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                    </svg>
+                    Edit
                   </Link>
-                  <p className="text-xs text-gray-400">{periodLabel(r.period)}</p>
+                  <button
+                    onClick={() => handlePublishClick(r)}
+                    disabled={togglingId === r.id}
+                    className={`flex-1 inline-flex items-center justify-center gap-1.5 text-xs font-bold px-3 py-2.5 rounded-xl transition-colors disabled:opacity-50 ${
+                      r.status === "PUBLISHED"
+                        ? "border border-amber-200 text-amber-700 bg-amber-50 active:bg-amber-100"
+                        : "bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-sm active:opacity-90"
+                    }`}
+                  >
+                    {togglingId === r.id ? "…" : r.status === "PUBLISHED" ? "Unpublish" : "Publish"}
+                  </button>
+                  <Link
+                    href={`/team/preview/${r.clientId}/${r.period}`}
+                    className="inline-flex items-center justify-center gap-1 text-xs font-bold text-gray-500 bg-gray-100 border border-gray-200 active:bg-gray-200 px-3 py-2.5 rounded-xl transition-colors"
+                  >
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                  </Link>
                 </div>
-                <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold flex-shrink-0 ${STATUS_STYLES[r.status]}`}>
-                  <span className={`w-1.5 h-1.5 rounded-full ${STATUS_DOT[r.status]}`} />
-                  {r.status === "PUBLISHED" ? "Published" : "Draft"}
-                </span>
-              </div>
-              {/* Actions */}
-              <div className="flex gap-2">
-                <Link
-                  href={`/team/entry/${r.clientId}/${r.period}`}
-                  className="flex-1 inline-flex items-center justify-center gap-1 text-xs font-semibold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-3 py-2 rounded-lg transition-colors"
-                >
-                  Edit
-                </Link>
-                <button
-                  onClick={() => handlePublishClick(r)}
-                  disabled={togglingId === r.id}
-                  className={`flex-1 inline-flex items-center justify-center gap-1 text-xs font-semibold px-3 py-2 rounded-lg transition-colors disabled:opacity-50 ${
-                    r.status === "PUBLISHED" ? "text-amber-700 bg-amber-50 hover:bg-amber-100" : "text-emerald-700 bg-emerald-50 hover:bg-emerald-100"
-                  }`}
-                >
-                  {togglingId === r.id ? "…" : r.status === "PUBLISHED" ? "Unpublish" : "Publish"}
-                </button>
-                <Link
-                  href={`/team/preview/${r.clientId}/${r.period}`}
-                  className="inline-flex items-center justify-center gap-1 text-xs font-semibold text-gray-500 bg-gray-100 hover:bg-gray-200 px-3 py-2 rounded-lg transition-colors"
-                >
-                  Preview
-                </Link>
               </div>
             </div>
           ))}

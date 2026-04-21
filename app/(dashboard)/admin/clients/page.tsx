@@ -330,55 +330,82 @@ export default function AdminClientsPage() {
       {/* Table / Cards */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
 
-        {/* ── Mobile cards (sm and below) ── */}
-        <div className="sm:hidden py-2 space-y-0 bg-gray-50/60">
+        {/* ── Mobile cards ── */}
+        <div className="sm:hidden p-3 space-y-3 bg-gray-50/80">
           {loading ? (
-            <div className="p-4 text-center text-gray-400 text-sm">Loading…</div>
+            <div className="py-10 text-center text-gray-400 text-sm">Loading…</div>
           ) : filtered.length === 0 ? (
-            <div className="p-8 text-center text-gray-400 text-sm">
+            <div className="py-10 text-center text-gray-400 text-sm">
               {search ? "No clients match your search." : "No clients yet. Create one to get started."}
             </div>
           ) : filtered.map((c) => (
-            <div key={c.id} className="p-4 mx-3 my-2 flex flex-col gap-3 bg-white rounded-2xl border border-gray-100 shadow-sm">
-              {/* Top row: avatar + name + status */}
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-indigo-100 rounded-xl flex items-center justify-center flex-shrink-0">
-                  <span className="text-indigo-600 font-bold text-base">{c.name.charAt(0)}</span>
+            <div key={c.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+              {/* Card top accent */}
+              <div className="h-1 w-full bg-gradient-to-r from-indigo-500 to-blue-500" />
+              <div className="p-4 flex flex-col gap-4">
+                {/* Header row */}
+                <div className="flex items-start gap-3">
+                  <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 to-blue-600 rounded-xl flex items-center justify-center flex-shrink-0 shadow-md">
+                    <span className="text-white font-bold text-lg">{c.name.charAt(0)}</span>
+                  </div>
+                  <div className="flex-1 min-w-0 pt-0.5">
+                    <p className="font-bold text-gray-900 text-base leading-tight truncate">{c.name}</p>
+                    <p className="text-xs text-gray-400 font-mono mt-0.5 truncate">{c.slug}</p>
+                  </div>
+                  <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-[11px] font-bold flex-shrink-0 mt-0.5 ${
+                    c.isActive
+                      ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                      : "bg-gray-100 text-gray-500 border border-gray-200"
+                  }`}>
+                    <span className={`w-1.5 h-1.5 rounded-full ${c.isActive ? "bg-emerald-500" : "bg-gray-400"}`} />
+                    {c.isActive ? "Active" : "Inactive"}
+                  </span>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-gray-900 truncate">{c.name}</p>
-                  <p className="text-xs text-gray-400 font-mono truncate">{c.slug}</p>
+
+                {/* Info pills */}
+                <div className="flex flex-wrap gap-2">
+                  {c.industry && (
+                    <span className="inline-flex items-center px-2.5 py-1 bg-indigo-50 text-indigo-700 rounded-lg text-xs font-semibold border border-indigo-100">
+                      {c.industry}
+                    </span>
+                  )}
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-gray-50 text-gray-600 rounded-lg text-xs font-semibold border border-gray-100">
+                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    {c._count.reports} report{c._count.reports !== 1 ? "s" : ""}
+                  </span>
+                  {c.contactEmail && (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-gray-50 text-gray-500 rounded-lg text-xs border border-gray-100 truncate max-w-[160px]">
+                      {c.contactEmail}
+                    </span>
+                  )}
                 </div>
-                <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold flex-shrink-0 ${
-                  c.isActive ? "bg-emerald-50 text-emerald-700 border border-emerald-200" : "bg-gray-100 text-gray-500 border border-gray-200"
-                }`}>
-                  <span className={`w-1.5 h-1.5 rounded-full ${c.isActive ? "bg-emerald-500" : "bg-gray-400"}`} />
-                  {c.isActive ? "Active" : "Inactive"}
-                </span>
-              </div>
-              {/* Meta row */}
-              <div className="flex items-center gap-4 text-xs text-gray-500">
-                {c.industry && <span>{c.industry}</span>}
-                <span className="font-medium text-gray-700">{c._count.reports} report{c._count.reports !== 1 ? "s" : ""}</span>
-                {c.contactEmail && <span className="truncate">{c.contactEmail}</span>}
-              </div>
-              {/* Actions */}
-              <div className="flex gap-2">
-                <Link
-                  href={`/admin/clients/${c.id}`}
-                  className="flex-1 inline-flex items-center justify-center gap-1 text-xs font-semibold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-3 py-2 rounded-lg transition-colors"
-                >
-                  Manage →
-                </Link>
-                <button
-                  onClick={() => setDeleteTarget(c)}
-                  className="inline-flex items-center justify-center gap-1 text-xs font-semibold text-red-500 bg-red-50 hover:bg-red-100 px-3 py-2 rounded-lg transition-colors"
-                >
-                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                  </svg>
-                  Delete
-                </button>
+
+                {/* Divider */}
+                <div className="h-px bg-gray-50" />
+
+                {/* Actions */}
+                <div className="flex gap-2">
+                  <Link
+                    href={`/admin/clients/${c.id}`}
+                    className="flex-1 inline-flex items-center justify-center gap-1.5 bg-gradient-to-r from-indigo-600 to-blue-600 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-sm active:opacity-90 transition-opacity"
+                  >
+                    Manage
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                    </svg>
+                  </Link>
+                  <button
+                    onClick={() => setDeleteTarget(c)}
+                    className="inline-flex items-center justify-center gap-1.5 border border-red-200 text-red-500 text-xs font-bold px-4 py-2.5 rounded-xl bg-red-50 active:bg-red-100 transition-colors"
+                  >
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                    Delete
+                  </button>
+                </div>
               </div>
             </div>
           ))}
