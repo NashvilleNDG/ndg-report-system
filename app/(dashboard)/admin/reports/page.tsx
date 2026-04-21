@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import Link from "next/link";
 import { periodLabel } from "@/lib/report-utils";
 import { SkeletonTable } from "@/components/ui/Skeleton";
@@ -66,14 +66,107 @@ function FilterSelect({
   );
 }
 
+// ── Publish-confirm modal ────────────────────────────────────────────────────
+interface PublishDialogState {
+  open: boolean;
+  report: Report | null;
+}
+
+function PublishEmailModal({
+  report,
+  onChoice,
+  onCancel,
+}: {
+  report: Report;
+  onChoice: (sendEmail: boolean) => void;
+  onCancel: () => void;
+}) {
+  const overlayRef = useRef<HTMLDivElement>(null);
+
+  // Close on Escape key
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => { if (e.key === "Escape") onCancel(); };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [onCancel]);
+
+  return (
+    <div
+      ref={overlayRef}
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      onClick={(e) => { if (e.target === overlayRef.current) onCancel(); }}
+    >
+      {/* Backdrop */}
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+
+      {/* Card */}
+      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 animate-in fade-in zoom-in-95 duration-150">
+
+        {/* Icon */}
+        <div className="w-12 h-12 rounded-xl bg-indigo-50 flex items-center justify-center mb-4">
+          <svg className="w-6 h-6 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round"
+              d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+          </svg>
+        </div>
+
+        <h2 className="text-lg font-bold text-gray-900 mb-1">Send report via email?</h2>
+        <p className="text-sm text-gray-500 mb-1">
+          You&apos;re publishing the <span className="font-semibold text-gray-700">{periodLabel(report.period)}</span> report
+          for <span className="font-semibold text-gray-700">{report.client.name}</span>.
+        </p>
+        <p className="text-sm text-gray-500 mb-6">
+          Would you like to notify the client by email with a PDF attachment?
+        </p>
+
+        <div className="flex flex-col gap-2.5">
+          {/* Yes — send email */}
+          <button
+            onClick={() => onChoice(true)}
+            className="w-full inline-flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm py-2.5 px-4 rounded-xl transition-colors shadow-sm"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round"
+                d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+            </svg>
+            Yes, publish &amp; send email
+          </button>
+
+          {/* No — just publish */}
+          <button
+            onClick={() => onChoice(false)}
+            className="w-full inline-flex items-center justify-center gap-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-semibold text-sm py-2.5 px-4 rounded-xl transition-colors border border-emerald-200"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            No, just publish (no email)
+          </button>
+
+          {/* Cancel */}
+          <button
+            onClick={onCancel}
+            className="w-full text-sm text-gray-400 hover:text-gray-600 font-medium py-2 rounded-xl transition-colors"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Page ─────────────────────────────────────────────────────────────────────
+
 export default function AdminReportsPage() {
-  const [reports,     setReports]     = useState<Report[]>([]);
-  const [loading,     setLoading]     = useState(true);
-  const [statusFilter,setStatusFilter]= useState<StatusFilter>("ALL");
-  const [clientFilter,setClientFilter]= useState("ALL");   // clientId or "ALL"
-  const [periodFilter,setPeriodFilter]= useState("ALL");   // "YYYY-MM" or "ALL"
-  const [search,      setSearch]      = useState("");
-  const [togglingId,  setTogglingId]  = useState<string | null>(null);
+  const [reports,      setReports]      = useState<Report[]>([]);
+  const [loading,      setLoading]      = useState(true);
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("ALL");
+  const [clientFilter, setClientFilter] = useState("ALL");   // clientId or "ALL"
+  const [periodFilter, setPeriodFilter] = useState("ALL");   // "YYYY-MM" or "ALL"
+  const [search,       setSearch]       = useState("");
+  const [togglingId,   setTogglingId]   = useState<string | null>(null);
+  const [publishDialog, setPublishDialog] = useState<PublishDialogState>({ open: false, report: null });
 
   const fetchReports = useCallback(async () => {
     setLoading(true);
@@ -125,14 +218,32 @@ export default function AdminReportsPage() {
   };
 
   // ── Toggle publish ────────────────────────────────────────────────────────
-  const handleToggleStatus = async (report: Report) => {
+  // Unpublish fires immediately; Publish opens the email-choice modal first.
+  const handlePublishClick = (report: Report) => {
+    if (report.status === "PUBLISHED") {
+      // Unpublish — no email involved, do it straight away
+      void executeToggle(report, false);
+    } else {
+      // Show modal asking whether to send email
+      setPublishDialog({ open: true, report });
+    }
+  };
+
+  const handlePublishChoice = async (sendEmail: boolean) => {
+    const report = publishDialog.report;
+    setPublishDialog({ open: false, report: null });
+    if (!report) return;
+    await executeToggle(report, sendEmail);
+  };
+
+  const executeToggle = async (report: Report, sendEmail: boolean) => {
     setTogglingId(report.id);
     const newStatus = report.status === "PUBLISHED" ? "DRAFT" : "PUBLISHED";
     try {
       const res = await fetch(`/api/reports/${report.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: newStatus }),
+        body: JSON.stringify({ status: newStatus, sendEmail }),
       });
       if (res.ok) {
         setReports((prev) =>
@@ -158,6 +269,15 @@ export default function AdminReportsPage() {
 
   return (
     <div className="space-y-6 page-content">
+
+      {/* ── Publish email modal ──────────────────────────────────────────────── */}
+      {publishDialog.open && publishDialog.report && (
+        <PublishEmailModal
+          report={publishDialog.report}
+          onChoice={handlePublishChoice}
+          onCancel={() => setPublishDialog({ open: false, report: null })}
+        />
+      )}
 
       {/* ── Header ─────────────────────────────────────────────────────────── */}
       <div className="flex items-center justify-between flex-wrap gap-4">
@@ -361,7 +481,7 @@ export default function AdminReportsPage() {
 
                       {/* Publish / Unpublish */}
                       <button
-                        onClick={() => handleToggleStatus(r)}
+                        onClick={() => handlePublishClick(r)}
                         disabled={togglingId === r.id}
                         className={`inline-flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50 ${
                           r.status === "PUBLISHED"

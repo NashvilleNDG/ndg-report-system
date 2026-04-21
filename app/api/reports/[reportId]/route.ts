@@ -56,7 +56,7 @@ export async function PUT(
   if (!report) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   const body = await req.json();
-  const { status, notes } = body;
+  const { status, notes, sendEmail = true } = body;
 
   if (status !== undefined && role !== "ADMIN") {
     return NextResponse.json({ error: "Only ADMIN can change report status" }, { status: 403 });
@@ -78,7 +78,8 @@ export async function PUT(
   });
 
   // Send email notifications (with PDF attachment) when a report is freshly published
-  if (status === "PUBLISHED" && report.status !== "PUBLISHED") {
+  // and the caller explicitly opted in (sendEmail === true).
+  if (status === "PUBLISHED" && report.status !== "PUBLISHED" && sendEmail === true) {
     try {
       const baseUrl = (process.env.NEXTAUTH_URL && process.env.NEXTAUTH_URL !== "true")
         ? process.env.NEXTAUTH_URL
