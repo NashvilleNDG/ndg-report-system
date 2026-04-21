@@ -331,7 +331,7 @@ export default function AdminClientsPage() {
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
 
         {/* ── Mobile cards (sm and below) ── */}
-        <div className="sm:hidden divide-y divide-gray-50">
+        <div className="sm:hidden py-2 space-y-0 bg-gray-50/60">
           {loading ? (
             <div className="p-4 text-center text-gray-400 text-sm">Loading…</div>
           ) : filtered.length === 0 ? (
@@ -339,7 +339,7 @@ export default function AdminClientsPage() {
               {search ? "No clients match your search." : "No clients yet. Create one to get started."}
             </div>
           ) : filtered.map((c) => (
-            <div key={c.id} className="p-4 flex flex-col gap-3">
+            <div key={c.id} className="p-4 mx-3 my-2 flex flex-col gap-3 bg-white rounded-2xl border border-gray-100 shadow-sm">
               {/* Top row: avatar + name + status */}
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-indigo-100 rounded-xl flex items-center justify-center flex-shrink-0">
