@@ -108,28 +108,39 @@ export default function ProfilePage() {
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
 
         {/* Banner with mesh overlay */}
-        <div className={`relative h-28 bg-gradient-to-br ${cfg.gradient}`}>
-          {/* Subtle pattern overlay */}
-          <svg className="absolute inset-0 w-full h-full opacity-10" xmlns="http://www.w3.org/2000/svg">
+        <div className={`relative h-32 bg-gradient-to-br ${cfg.gradient}`}>
+          {/* Subtle dot pattern */}
+          <svg className="absolute inset-0 w-full h-full opacity-[0.07]" xmlns="http://www.w3.org/2000/svg">
             <defs>
-              <pattern id="grid" width="24" height="24" patternUnits="userSpaceOnUse">
-                <path d="M 24 0 L 0 0 0 24" fill="none" stroke="white" strokeWidth="0.5"/>
+              <pattern id="dots" width="20" height="20" patternUnits="userSpaceOnUse">
+                <circle cx="2" cy="2" r="1.5" fill="white"/>
               </pattern>
             </defs>
-            <rect width="100%" height="100%" fill="url(#grid)" />
+            <rect width="100%" height="100%" fill="url(#dots)" />
           </svg>
-          {/* Glow blob */}
-          <div className="absolute -top-6 -right-6 w-32 h-32 rounded-full bg-white opacity-5 blur-2xl" />
-          <div className="absolute bottom-0 left-1/3 w-40 h-16 rounded-full bg-white opacity-5 blur-2xl" />
+          {/* Glow blobs */}
+          <div className="absolute -top-8 -right-8 w-40 h-40 rounded-full bg-white opacity-10 blur-3xl" />
+          <div className="absolute -bottom-4 left-1/4 w-48 h-20 rounded-full bg-white opacity-10 blur-2xl" />
         </div>
 
         {/* Avatar + role badge row */}
-        <div className="px-6 -mt-10 flex items-end justify-between mb-4">
-          <div className={`w-20 h-20 bg-gradient-to-br ${cfg.gradient} rounded-2xl flex items-center justify-center shadow-xl border-4 border-white ring-2 ${cfg.ring}`}>
-            <span className="text-white font-black text-3xl drop-shadow">
-              {me?.name?.charAt(0).toUpperCase() ?? "?"}
-            </span>
+        <div className="px-6 flex items-end justify-between mb-5" style={{ marginTop: "-38px" }}>
+          {/* Avatar: circle with thick white ring and strong shadow */}
+          <div className="relative">
+            {/* Outer white ring */}
+            <div className="w-[78px] h-[78px] rounded-full bg-white flex items-center justify-center shadow-2xl">
+              {/* Inner gradient circle */}
+              <div className={`w-[66px] h-[66px] bg-gradient-to-br ${cfg.gradient} rounded-full flex items-center justify-center`}>
+                <span className="text-white font-black text-2xl tracking-tight select-none"
+                  style={{ textShadow: "0 2px 8px rgba(0,0,0,0.25)" }}>
+                  {me?.name?.charAt(0).toUpperCase() ?? "?"}
+                </span>
+              </div>
+            </div>
+            {/* Online indicator dot */}
+            <span className="absolute bottom-1 right-1 w-3.5 h-3.5 bg-emerald-400 border-2 border-white rounded-full shadow-sm" />
           </div>
+
           <div className={`mb-1 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border ${cfg.badge}`}>
             <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />
             {me?.role ? (ROLE_LABELS[me.role] ?? me.role) : "—"}
