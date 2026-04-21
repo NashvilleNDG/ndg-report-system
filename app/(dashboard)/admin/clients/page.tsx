@@ -327,9 +327,65 @@ export default function AdminClientsPage() {
         />
       </div>
 
-      {/* Table */}
+      {/* Table / Cards */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-        <div className="overflow-x-auto">
+
+        {/* ── Mobile cards (sm and below) ── */}
+        <div className="sm:hidden divide-y divide-gray-50">
+          {loading ? (
+            <div className="p-4 text-center text-gray-400 text-sm">Loading…</div>
+          ) : filtered.length === 0 ? (
+            <div className="p-8 text-center text-gray-400 text-sm">
+              {search ? "No clients match your search." : "No clients yet. Create one to get started."}
+            </div>
+          ) : filtered.map((c) => (
+            <div key={c.id} className="p-4 flex flex-col gap-3">
+              {/* Top row: avatar + name + status */}
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-indigo-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <span className="text-indigo-600 font-bold text-base">{c.name.charAt(0)}</span>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-gray-900 truncate">{c.name}</p>
+                  <p className="text-xs text-gray-400 font-mono truncate">{c.slug}</p>
+                </div>
+                <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold flex-shrink-0 ${
+                  c.isActive ? "bg-emerald-50 text-emerald-700 border border-emerald-200" : "bg-gray-100 text-gray-500 border border-gray-200"
+                }`}>
+                  <span className={`w-1.5 h-1.5 rounded-full ${c.isActive ? "bg-emerald-500" : "bg-gray-400"}`} />
+                  {c.isActive ? "Active" : "Inactive"}
+                </span>
+              </div>
+              {/* Meta row */}
+              <div className="flex items-center gap-4 text-xs text-gray-500">
+                {c.industry && <span>{c.industry}</span>}
+                <span className="font-medium text-gray-700">{c._count.reports} report{c._count.reports !== 1 ? "s" : ""}</span>
+                {c.contactEmail && <span className="truncate">{c.contactEmail}</span>}
+              </div>
+              {/* Actions */}
+              <div className="flex gap-2">
+                <Link
+                  href={`/admin/clients/${c.id}`}
+                  className="flex-1 inline-flex items-center justify-center gap-1 text-xs font-semibold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-3 py-2 rounded-lg transition-colors"
+                >
+                  Manage →
+                </Link>
+                <button
+                  onClick={() => setDeleteTarget(c)}
+                  className="inline-flex items-center justify-center gap-1 text-xs font-semibold text-red-500 bg-red-50 hover:bg-red-100 px-3 py-2 rounded-lg transition-colors"
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                  Delete
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* ── Desktop table (sm and above) ── */}
+        <div className="hidden sm:block overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-gray-50/80 border-b border-gray-100">

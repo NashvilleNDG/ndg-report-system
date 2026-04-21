@@ -322,9 +322,76 @@ export default function AdminUsersPage() {
         })}
       </div>
 
-      {/* Table */}
+      {/* Table / Cards */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-        <div className="overflow-x-auto">
+
+        {/* ── Mobile cards ── */}
+        <div className="sm:hidden divide-y divide-gray-50">
+          {loading ? (
+            <div className="p-4 text-center text-gray-400 text-sm">Loading…</div>
+          ) : filtered.length === 0 ? (
+            <div className="p-8 text-center text-gray-400 text-sm">No {roleFilter !== "ALL" ? roleFilter.toLowerCase() : ""} users found.</div>
+          ) : filtered.map((u) => {
+            const isOwnerRow = u.email === OWNER_EMAIL;
+            return (
+              <div key={u.id} className={`p-4 flex flex-col gap-3 ${isOwnerRow ? "bg-amber-50/30" : ""}`}>
+                {/* Top: avatar + name + role */}
+                <div className="flex items-center gap-3">
+                  <div className="relative flex-shrink-0">
+                    <div className={`w-10 h-10 bg-gradient-to-br ${ROLE_AVATAR[u.role] ?? "from-gray-400 to-gray-600"} rounded-xl flex items-center justify-center shadow-sm`}>
+                      <span className="text-white font-bold text-sm">{u.name.charAt(0).toUpperCase()}</span>
+                    </div>
+                    {isOwnerRow && (
+                      <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-amber-400 rounded-full flex items-center justify-center shadow-sm">
+                        <svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                        </svg>
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p className="font-semibold text-gray-900">{u.name}</p>
+                      {isOwnerRow && <span className="px-1.5 py-0.5 rounded text-xs font-bold bg-amber-100 text-amber-700 border border-amber-200">Owner</span>}
+                    </div>
+                    <p className="text-xs text-gray-400 truncate">{u.email}</p>
+                  </div>
+                  <span className={`px-2.5 py-1 rounded-full text-xs font-semibold flex-shrink-0 ${ROLE_STYLES[u.role]}`}>{u.role}</span>
+                </div>
+                {/* Meta */}
+                <div className="flex items-center gap-3 text-xs text-gray-500">
+                  <span>Joined {new Date(u.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</span>
+                  {u.clientId && <span className="text-indigo-600 font-medium">{clientMap[u.clientId] ?? u.clientId}</span>}
+                </div>
+                {/* Actions */}
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setModal({ mode: "edit", user: u })}
+                    className="flex-1 inline-flex items-center justify-center gap-1 text-xs font-semibold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-3 py-2 rounded-lg transition-colors"
+                  >
+                    Edit
+                  </button>
+                  {!isOwnerRow ? (
+                    <button
+                      onClick={() => handleDelete(u.id)}
+                      disabled={deletingId === u.id}
+                      className="flex-1 inline-flex items-center justify-center gap-1 text-xs font-semibold text-red-500 bg-red-50 hover:bg-red-100 px-3 py-2 rounded-lg transition-colors disabled:opacity-50"
+                    >
+                      {deletingId === u.id ? "…" : "Delete"}
+                    </button>
+                  ) : (
+                    <span className="flex-1 inline-flex items-center justify-center gap-1 text-xs font-medium text-amber-600 bg-amber-50 border border-amber-200 px-3 py-2 rounded-lg cursor-default">
+                      🔒 Protected
+                    </span>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* ── Desktop table ── */}
+        <div className="hidden sm:block overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-gray-50/80 border-b border-gray-100">
@@ -348,7 +415,6 @@ export default function AdminUsersPage() {
                         <div className={`w-9 h-9 bg-gradient-to-br ${ROLE_AVATAR[u.role] ?? "from-gray-400 to-gray-600"} rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm`}>
                           <span className="text-white font-bold text-sm">{u.name.charAt(0).toUpperCase()}</span>
                         </div>
-                        {/* Crown badge for owner */}
                         {isOwnerRow && (
                           <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-amber-400 rounded-full flex items-center justify-center shadow-sm" title="System Owner">
                             <svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
@@ -360,9 +426,7 @@ export default function AdminUsersPage() {
                       <div>
                         <span className="font-semibold text-gray-900">{u.name}</span>
                         {isOwnerRow && (
-                          <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded text-xs font-bold bg-amber-100 text-amber-700 border border-amber-200">
-                            Owner
-                          </span>
+                          <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded text-xs font-bold bg-amber-100 text-amber-700 border border-amber-200">Owner</span>
                         )}
                       </div>
                     </div>
@@ -379,14 +443,12 @@ export default function AdminUsersPage() {
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-2">
-                      {/* Edit — always allowed (password change etc), but modal locks sensitive fields */}
                       <button
                         onClick={() => setModal({ mode: "edit", user: u })}
                         className="inline-flex items-center gap-1 text-xs font-semibold text-indigo-600 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-lg transition-colors"
                       >
                         Edit
                       </button>
-                      {/* Delete — hidden for owner */}
                       {!isOwnerRow ? (
                         <button
                           onClick={() => handleDelete(u.id)}

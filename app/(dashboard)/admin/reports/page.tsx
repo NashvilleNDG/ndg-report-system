@@ -383,9 +383,69 @@ export default function AdminReportsPage() {
         </div>
       </div>
 
-      {/* ── Table ──────────────────────────────────────────────────────────── */}
+      {/* ── Table / Cards ──────────────────────────────────────────────────── */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-        <div className="overflow-x-auto">
+
+        {/* ── Mobile cards ── */}
+        <div className="sm:hidden divide-y divide-gray-50">
+          {loading ? (
+            <div className="p-4 text-center text-gray-400 text-sm">Loading…</div>
+          ) : filtered.length === 0 ? (
+            <div className="p-8 text-center flex flex-col items-center gap-2">
+              <svg className="w-10 h-10 text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              <p className="text-gray-400 text-sm">No reports match the selected filters.</p>
+              {hasActiveFilters && <button onClick={clearFilters} className="text-indigo-600 text-xs font-semibold hover:underline">Clear filters</button>}
+            </div>
+          ) : filtered.map((r) => (
+            <div key={r.id} className="p-4 flex flex-col gap-3">
+              {/* Top: client + status */}
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 bg-gradient-to-br from-indigo-400 to-blue-500 rounded-lg flex items-center justify-center flex-shrink-0 shadow-sm">
+                  <span className="text-white font-bold text-xs">{r.client.name.charAt(0).toUpperCase()}</span>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <Link href={`/admin/clients/${r.clientId}`} className="font-semibold text-gray-900 hover:text-indigo-600 transition-colors flex items-center gap-1">
+                    {r.client.name}
+                  </Link>
+                  <p className="text-xs text-gray-400">{periodLabel(r.period)}</p>
+                </div>
+                <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold flex-shrink-0 ${STATUS_STYLES[r.status]}`}>
+                  <span className={`w-1.5 h-1.5 rounded-full ${STATUS_DOT[r.status]}`} />
+                  {r.status === "PUBLISHED" ? "Published" : "Draft"}
+                </span>
+              </div>
+              {/* Actions */}
+              <div className="flex gap-2">
+                <Link
+                  href={`/team/entry/${r.clientId}/${r.period}`}
+                  className="flex-1 inline-flex items-center justify-center gap-1 text-xs font-semibold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-3 py-2 rounded-lg transition-colors"
+                >
+                  Edit
+                </Link>
+                <button
+                  onClick={() => handlePublishClick(r)}
+                  disabled={togglingId === r.id}
+                  className={`flex-1 inline-flex items-center justify-center gap-1 text-xs font-semibold px-3 py-2 rounded-lg transition-colors disabled:opacity-50 ${
+                    r.status === "PUBLISHED" ? "text-amber-700 bg-amber-50 hover:bg-amber-100" : "text-emerald-700 bg-emerald-50 hover:bg-emerald-100"
+                  }`}
+                >
+                  {togglingId === r.id ? "…" : r.status === "PUBLISHED" ? "Unpublish" : "Publish"}
+                </button>
+                <Link
+                  href={`/team/preview/${r.clientId}/${r.period}`}
+                  className="inline-flex items-center justify-center gap-1 text-xs font-semibold text-gray-500 bg-gray-100 hover:bg-gray-200 px-3 py-2 rounded-lg transition-colors"
+                >
+                  Preview
+                </Link>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* ── Desktop table ── */}
+        <div className="hidden sm:block overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-gray-50/80 border-b border-gray-100">
@@ -408,27 +468,19 @@ export default function AdminReportsPage() {
                       </svg>
                       <p className="text-gray-400 text-sm">No reports match the selected filters.</p>
                       {hasActiveFilters && (
-                        <button onClick={clearFilters} className="text-indigo-600 text-xs font-semibold hover:underline mt-1">
-                          Clear filters
-                        </button>
+                        <button onClick={clearFilters} className="text-indigo-600 text-xs font-semibold hover:underline mt-1">Clear filters</button>
                       )}
                     </div>
                   </td>
                 </tr>
               ) : filtered.map((r) => (
                 <tr key={r.id} className="hover:bg-gray-50/60 transition-colors">
-
-                  {/* Client */}
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 bg-gradient-to-br from-indigo-400 to-blue-500 rounded-lg flex items-center justify-center flex-shrink-0 shadow-sm">
                         <span className="text-white font-bold text-xs">{r.client.name.charAt(0).toUpperCase()}</span>
                       </div>
-                      <Link
-                        href={`/admin/clients/${r.clientId}`}
-                        className="font-semibold text-gray-900 hover:text-indigo-600 transition-colors group flex items-center gap-1"
-                        title={`View ${r.client.name} details`}
-                      >
+                      <Link href={`/admin/clients/${r.clientId}`} className="font-semibold text-gray-900 hover:text-indigo-600 transition-colors group flex items-center gap-1" title={`View ${r.client.name} details`}>
                         {r.client.name}
                         <svg className="w-3.5 h-3.5 text-gray-300 group-hover:text-indigo-400 transition-colors -mb-px" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
@@ -436,60 +488,36 @@ export default function AdminReportsPage() {
                       </Link>
                     </div>
                   </td>
-
-                  {/* Period */}
                   <td className="px-6 py-4">
-                    <button
-                      onClick={() => setPeriodFilter(r.period)}
-                      className="font-medium text-gray-700 hover:text-indigo-600 transition-colors"
-                      title={`Filter by ${periodLabel(r.period)}`}
-                    >
+                    <button onClick={() => setPeriodFilter(r.period)} className="font-medium text-gray-700 hover:text-indigo-600 transition-colors" title={`Filter by ${periodLabel(r.period)}`}>
                       {periodLabel(r.period)}
                     </button>
                   </td>
-
-                  {/* Status */}
                   <td className="px-6 py-4">
                     <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${STATUS_STYLES[r.status]}`}>
                       <span className={`w-1.5 h-1.5 rounded-full ${STATUS_DOT[r.status]}`} />
                       {r.status === "PUBLISHED" ? "Published" : "Draft"}
                     </span>
                   </td>
-
-                  {/* Last Updated */}
                   <td className="px-6 py-4 text-gray-400 text-xs">
                     {new Date(r.updatedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
                   </td>
-
-                  {/* Published At */}
                   <td className="px-6 py-4 text-gray-400 text-xs">
-                    {r.publishedAt
-                      ? new Date(r.publishedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
-                      : "—"}
+                    {r.publishedAt ? new Date(r.publishedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "—"}
                   </td>
-
-                  {/* Actions */}
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-2">
-                      {/* Edit */}
-                      <Link
-                        href={`/team/entry/${r.clientId}/${r.period}`}
-                        className="inline-flex items-center gap-1 text-xs font-semibold text-indigo-600 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-lg transition-colors"
-                      >
+                      <Link href={`/team/entry/${r.clientId}/${r.period}`} className="inline-flex items-center gap-1 text-xs font-semibold text-indigo-600 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-lg transition-colors">
                         <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                         </svg>
                         Edit
                       </Link>
-
-                      {/* Publish / Unpublish */}
                       <button
                         onClick={() => handlePublishClick(r)}
                         disabled={togglingId === r.id}
                         className={`inline-flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50 ${
-                          r.status === "PUBLISHED"
-                            ? "text-amber-700 bg-amber-50 hover:bg-amber-100"
-                            : "text-emerald-700 bg-emerald-50 hover:bg-emerald-100"
+                          r.status === "PUBLISHED" ? "text-amber-700 bg-amber-50 hover:bg-amber-100" : "text-emerald-700 bg-emerald-50 hover:bg-emerald-100"
                         }`}
                       >
                         {togglingId === r.id ? (
@@ -508,12 +536,7 @@ export default function AdminReportsPage() {
                         )}
                         {togglingId === r.id ? "…" : r.status === "PUBLISHED" ? "Unpublish" : "Publish"}
                       </button>
-
-                      {/* Preview */}
-                      <Link
-                        href={`/team/preview/${r.clientId}/${r.period}`}
-                        className="inline-flex items-center gap-1 text-xs font-semibold text-gray-500 hover:text-gray-700 bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-lg transition-colors"
-                      >
+                      <Link href={`/team/preview/${r.clientId}/${r.period}`} className="inline-flex items-center gap-1 text-xs font-semibold text-gray-500 hover:text-gray-700 bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-lg transition-colors">
                         <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                           <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
