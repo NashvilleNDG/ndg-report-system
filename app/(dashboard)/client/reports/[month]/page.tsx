@@ -50,9 +50,9 @@ export default async function ClientMonthReportPage({ params }: PageProps) {
   const prevPeriod = currentIndex > 0 ? allReports[currentIndex - 1].period : null;
   const nextPeriod = currentIndex < allReports.length - 1 ? allReports[currentIndex + 1].period : null;
 
-  // ── Historical trend data (last 6 published reports) ──────────────────────
+  // ── Historical trend data (6 published reports UP TO and including this month) ─
   const historicalReports = await prisma.report.findMany({
-    where: { clientId, status: "PUBLISHED" },
+    where: { clientId, status: "PUBLISHED", period: { lte: month } },
     orderBy: { period: "desc" },
     take: 6,
     select: {
@@ -107,7 +107,7 @@ export default async function ClientMonthReportPage({ params }: PageProps) {
       {fullReport.emailMarketing && <EmailMarketingSection data={fullReport.emailMarketing} />}
 
       {/* Historical Trend Charts */}
-      {trendCharts.length > 0 && <TrendChartsSection charts={trendCharts} />}
+      {trendCharts.length > 0 && <TrendChartsSection charts={trendCharts} totalMonths={historicalReports.length} />}
 
       {/* Prev / Next Navigation */}
       <div className="flex items-center justify-between pt-2">
