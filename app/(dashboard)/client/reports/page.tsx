@@ -44,6 +44,11 @@ export default async function ClientReportsPage() {
           {reports.map((r, i) => {
             const isLatest = i === 0;
             const isNew = r.publishedAt && (NOW - new Date(r.publishedAt).getTime()) < SEVEN_DAYS_MS;
+            // Parse using local-time constructor to avoid UTC offset shifting the month back
+            const [pYear, pMonth] = r.period.split("-").map(Number);
+            const periodDate = new Date(pYear, pMonth - 1, 1);
+            const shortMonth = periodDate.toLocaleDateString("en-US", { month: "short" });
+            const shortYear = String(pYear).slice(2);
             return (
               <Link
                 key={r.id}
@@ -56,10 +61,10 @@ export default async function ClientReportsPage() {
                 <div className="flex items-start justify-between gap-2">
                   <div className={`w-12 h-12 rounded-xl flex flex-col items-center justify-center flex-shrink-0 ${isLatest ? "bg-indigo-600" : "bg-gray-100"}`}>
                     <span className={`text-[10px] font-bold uppercase leading-tight ${isLatest ? "text-indigo-200" : "text-gray-400"}`}>
-                      {new Date(r.period + "-01").toLocaleDateString("en-US", { month: "short" })}
+                      {shortMonth}
                     </span>
                     <span className={`text-base font-black leading-tight ${isLatest ? "text-white" : "text-gray-600"}`}>
-                      {r.period.split("-")[0].slice(2)}
+                      {shortYear}
                     </span>
                   </div>
                   <div className="flex items-center gap-1.5">
