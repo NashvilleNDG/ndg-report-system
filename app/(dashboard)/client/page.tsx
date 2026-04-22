@@ -7,7 +7,6 @@ import SocialMediaSection from "@/components/reports/SocialMediaSection";
 import WebsiteSection from "@/components/reports/WebsiteSection";
 import GMBSection from "@/components/reports/GMBSection";
 import EmailMarketingSection from "@/components/reports/EmailMarketingSection";
-import PrintButton from "@/components/ui/PrintButton";
 import Link from "next/link";
 import type { FullReport } from "@/types/report";
 
@@ -127,7 +126,6 @@ export default async function ClientDashboardPage() {
             </p>
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
-            <PrintButton variant="ghost" />
             <Link
               href="/client/reports"
               className="inline-flex items-center gap-1.5 px-4 py-2 bg-white/15 hover:bg-white/25 text-white text-sm font-semibold rounded-xl border border-white/20 transition-colors"
@@ -146,6 +144,7 @@ export default async function ClientDashboardPage() {
         period={latestReport.period}
         status={latestReport.status}
         updatedAt={latestReport.updatedAt}
+        clientView
       />
 
       {/* Notes from team */}

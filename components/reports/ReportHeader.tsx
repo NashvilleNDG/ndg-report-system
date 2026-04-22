@@ -1,14 +1,17 @@
 import { periodLabel } from "@/lib/report-utils";
 import Link from "next/link";
+import PrintButton from "@/components/ui/PrintButton";
 
 interface ReportHeaderProps {
   clientName: string;
   period: string;
   status: string;
   updatedAt?: Date | string | null;
+  /** When true: hides Published badge + Template button, shows Download PDF instead */
+  clientView?: boolean;
 }
 
-export default function ReportHeader({ clientName, period, status, updatedAt }: ReportHeaderProps) {
+export default function ReportHeader({ clientName, period, status, updatedAt, clientView = false }: ReportHeaderProps) {
   const isPublished = status === "PUBLISHED";
   const [year, month] = period.split("-");
   const monthName = new Date(parseInt(year), parseInt(month) - 1, 1).toLocaleDateString("en-US", { month: "long" });
@@ -38,26 +41,35 @@ export default function ReportHeader({ clientName, period, status, updatedAt }: 
             )}
           </div>
         </div>
+
         <div className="flex items-center gap-3">
-          <span
-            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wide ${
-              isPublished
-                ? "bg-emerald-400/20 text-emerald-100 border border-emerald-400/30"
-                : "bg-amber-400/20 text-amber-100 border border-amber-400/30"
-            }`}
-          >
-            <span className={`w-1.5 h-1.5 rounded-full ${isPublished ? "bg-emerald-400" : "bg-amber-400"}`} />
-            {isPublished ? "Published" : "Draft"}
-          </span>
-          <Link
-            href="/api/template"
-            className="inline-flex items-center gap-2 px-4 py-2 bg-white/15 hover:bg-white/25 text-white text-sm font-medium rounded-xl transition-colors border border-white/20"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-            </svg>
-            Template
-          </Link>
+          {clientView ? (
+            /* Client view: just a Download PDF button */
+            <PrintButton variant="ghost" />
+          ) : (
+            /* Admin / team preview: show status badge + Template link */
+            <>
+              <span
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wide ${
+                  isPublished
+                    ? "bg-emerald-400/20 text-emerald-100 border border-emerald-400/30"
+                    : "bg-amber-400/20 text-amber-100 border border-amber-400/30"
+                }`}
+              >
+                <span className={`w-1.5 h-1.5 rounded-full ${isPublished ? "bg-emerald-400" : "bg-amber-400"}`} />
+                {isPublished ? "Published" : "Draft"}
+              </span>
+              <Link
+                href="/api/template"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-white/15 hover:bg-white/25 text-white text-sm font-medium rounded-xl transition-colors border border-white/20"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+                Template
+              </Link>
+            </>
+          )}
         </div>
       </div>
     </div>
