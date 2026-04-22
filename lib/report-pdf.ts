@@ -157,7 +157,6 @@ function facebookBlock(doc: Doc, cy: number, d: FacebookMetrics): number {
 function youtubeBlock(doc: Doc, cy: number, d: YouTubeMetrics): number {
   return socialBlock(doc, cy, "YouTube", "#ff0000", [
     { label: "Views",         value: fmt(d.views) },
-    { label: "Subscribers",   value: fmt(d.subscribers) },
     { label: "No. of Videos", value: fmt(d.numberOfVideos) },
   ]);
 }

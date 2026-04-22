@@ -33,7 +33,6 @@ const FIELDS: Record<Tab, { key: string; label: string; hint?: string; isFloat?:
   ],
   YouTube: [
     { key: "views",          label: "Views",            hint: "Total video views" },
-    { key: "subscribers",    label: "Subscribers",      hint: "Total subscriber count" },
     { key: "numberOfVideos", label: "Number of Videos", hint: "Videos published this period" },
   ],
   GMB: [

@@ -11,7 +11,7 @@ interface HistoricalReport {
   socialMedia?: {
     instagram?: { follows?: number | null } | null;
     facebook?:  { follows?: number | null } | null;
-    youtube?:   { subscribers?: number | null } | null;
+    youtube?:   { views?: number | null; subscribers?: number | null } | null;
     tiktok?:    { follows?: number | null } | null;
   } | null;
   websiteData?: { views?: number | null } | null;
@@ -44,7 +44,7 @@ export function buildTrendData(reports: HistoricalReport[]): TrendChartConfig[] 
 
   const instagram = makeSeries("instagram-follows",    "Instagram Follows",      "Follows",       "#e1306c", (r) => r.socialMedia?.instagram?.follows);
   const facebook  = makeSeries("facebook-follows",     "Facebook Follows",       "Follows",       "#1877f2", (r) => r.socialMedia?.facebook?.follows);
-  const youtube   = makeSeries("youtube-subscribers",  "YouTube Subscribers",    "Subscribers",   "#ff0000", (r) => r.socialMedia?.youtube?.subscribers);
+  const youtube   = makeSeries("youtube-views",        "YouTube Views",          "Views",         "#ff0000", (r) => r.socialMedia?.youtube?.views);
   const tiktok    = makeSeries("tiktok-follows",       "TikTok Follows",         "Follows",       "#010101", (r) => r.socialMedia?.tiktok?.follows);
   const website   = makeSeries("website-views",        "Website Views",          "Views",         "#0d9488", (r) => r.websiteData?.views);
   const gmb       = makeSeries("gmb-views",            "Google Business Views",  "Views",         "#ea580c", (r) => r.gmbData?.views);

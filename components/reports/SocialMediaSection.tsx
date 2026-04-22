@@ -79,8 +79,7 @@ function FacebookStats({ d }: { d: FacebookMetrics }) {
 function YouTubeStats({ d }: { d: YouTubeMetrics }) {
   return (
     <div className="grid grid-cols-2 gap-3">
-      <StatCard label="Views"          value={formatNumber(d.views)} accent="red" />
-      <StatCard label="Subscribers"    value={formatNumber(d.subscribers)} accent="red" />
+      <StatCard label="Views"            value={formatNumber(d.views)} accent="red" />
       <StatCard label="Number of Videos" value={formatNumber(d.numberOfVideos)} accent="red" />
     </div>
   );
