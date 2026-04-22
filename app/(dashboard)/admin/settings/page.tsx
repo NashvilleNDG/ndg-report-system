@@ -1,7 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useToast } from "@/components/ui/Toast";
 
+/* ─── Types ──────────────────────────────────────────────────────────────────── */
 interface Client {
   id: string;
   name: string;
@@ -15,7 +17,74 @@ interface DriveConfig {
   syncStatus: string | null;
 }
 
-// Collect all unique file IDs already saved across clients
+/* ─── SVG Icons ──────────────────────────────────────────────────────────────── */
+function IconDrive({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M22 12H2" />
+      <path d="M5.45 5.11L2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6l-3.45-6.89A2 2 0 0016.76 4H7.24a2 2 0 00-1.79 1.11z" />
+      <line x1="6" y1="16" x2="6.01" y2="16" />
+      <line x1="10" y1="16" x2="10.01" y2="16" />
+    </svg>
+  );
+}
+
+function IconSheet({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="3" width="18" height="18" rx="2" />
+      <path d="M3 9h18M3 15h18M9 3v18" />
+    </svg>
+  );
+}
+
+function IconDownload({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1" />
+      <polyline points="7 10 12 15 17 10" />
+      <line x1="12" y1="15" x2="12" y2="3" />
+    </svg>
+  );
+}
+
+function IconCopy({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+      <rect x="9" y="9" width="13" height="13" rx="2" />
+      <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
+    </svg>
+  );
+}
+
+function IconCheck({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="20 6 9 17 4 12" />
+    </svg>
+  );
+}
+
+function IconChevronDown({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="6 9 12 15 18 9" />
+    </svg>
+  );
+}
+
+function IconUsers({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
+      <circle cx="9" cy="7" r="4" />
+      <path d="M23 21v-2a4 4 0 00-3-3.87" />
+      <path d="M16 3.13a4 4 0 010 7.75" />
+    </svg>
+  );
+}
+
+/* ─── Existing File IDs hook ─────────────────────────────────────────────────── */
 function useExistingFileIds() {
   const [ids, setIds] = useState<string[]>([]);
   useEffect(() => {
@@ -32,16 +101,84 @@ function useExistingFileIds() {
   return { ids, addId };
 }
 
-function DriveConfigRow({ client, existingFileIds, onFileSaved }: {
+/* ─── Status Badge ───────────────────────────────────────────────────────────── */
+function StatusBadge({ status }: { status: string | null }) {
+  if (!status) {
+    return (
+      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-500">
+        <span className="w-1.5 h-1.5 rounded-full bg-gray-400" />
+        Not configured
+      </span>
+    );
+  }
+  if (status === "OK") {
+    return (
+      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700">
+        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+        Synced
+      </span>
+    );
+  }
+  return (
+    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-red-50 text-red-700">
+      <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
+      {status}
+    </span>
+  );
+}
+
+/* ─── Skeleton Row ───────────────────────────────────────────────────────────── */
+function SkeletonRow() {
+  return (
+    <div className="rounded-xl border border-gray-100 bg-gray-50/60 p-5 animate-pulse">
+      <div className="flex items-center gap-3 mb-4">
+        <div className="w-9 h-9 rounded-xl bg-gray-200" />
+        <div className="flex-1 space-y-1.5">
+          <div className="h-3.5 w-32 bg-gray-200 rounded-full" />
+          <div className="h-2.5 w-20 bg-gray-200 rounded-full" />
+        </div>
+        <div className="h-6 w-24 bg-gray-200 rounded-full" />
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div className="h-9 bg-gray-200 rounded-lg" />
+        <div className="h-9 bg-gray-200 rounded-lg" />
+      </div>
+    </div>
+  );
+}
+
+/* ─── Empty State ────────────────────────────────────────────────────────────── */
+function EmptyState() {
+  return (
+    <div className="flex flex-col items-center justify-center py-14 text-center">
+      <div className="w-16 h-16 rounded-2xl bg-gray-100 flex items-center justify-center mb-4">
+        <IconUsers className="w-8 h-8 text-gray-400" />
+      </div>
+      <p className="text-sm font-semibold text-gray-700 mb-1">No clients yet</p>
+      <p className="text-xs text-gray-400 max-w-56 leading-relaxed">
+        Create clients first and they will appear here for Drive configuration.
+      </p>
+    </div>
+  );
+}
+
+/* ─── DriveConfigRow ─────────────────────────────────────────────────────────── */
+function DriveConfigRow({
+  client,
+  existingFileIds,
+  onFileSaved,
+}: {
   client: Client;
   existingFileIds: string[];
   onFileSaved: (id: string) => void;
 }) {
+  const toast = useToast();
   const [config, setConfig] = useState<DriveConfig | null>(null);
   const [form, setForm] = useState({ driveFileId: "", sheetName: "" });
   const [saving, setSaving] = useState(false);
-  const [msg, setMsg] = useState("");
+  const [copied, setCopied] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetch(`/api/sync/drive?clientId=${client.id}`)
@@ -54,10 +191,20 @@ function DriveConfigRow({ client, existingFileIds, onFileSaved }: {
       });
   }, [client.id]);
 
+  /* Close dropdown on outside click */
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setShowDropdown(false);
+      }
+    }
+    if (showDropdown) document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [showDropdown]);
+
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
-    setMsg("");
     const res = await fetch("/api/sync/drive/config", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -66,104 +213,192 @@ function DriveConfigRow({ client, existingFileIds, onFileSaved }: {
     const data = await res.json();
     if (res.ok) {
       setConfig(data);
-      setMsg("Saved!");
       if (form.driveFileId) onFileSaved(form.driveFileId);
+      toast.success("Drive config saved!", "Changes will take effect on next sync.");
     } else {
-      setMsg(data.error ?? "Save failed");
+      toast.error("Save failed", data.error ?? "An unexpected error occurred.");
     }
     setSaving(false);
   };
 
-  // File IDs to show in dropdown (existing ones not already in input)
+  const handleCopy = () => {
+    if (!form.driveFileId) return;
+    navigator.clipboard.writeText(form.driveFileId).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
+
+  const avatarLetter = client.name.charAt(0).toUpperCase();
   const dropdownOptions = existingFileIds.filter((id) => id !== form.driveFileId);
 
   return (
-    <div className="bg-gray-50 rounded-xl border border-gray-200 p-5">
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="font-semibold text-gray-800">{client.name}</h3>
-        {config?.lastSyncedAt && (
-          <span className="text-xs text-gray-400">
-            Last synced: {new Date(config.lastSyncedAt).toLocaleString()}
-          </span>
-        )}
-      </div>
-      {config?.syncStatus && (
-        <div className={`text-xs mb-3 font-medium px-2 py-1 rounded inline-block ${
-          config.syncStatus === "OK" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
-        }`}>
-          {config.syncStatus}
-        </div>
-      )}
-      <form onSubmit={handleSave} className="flex flex-wrap gap-3 items-end">
-        {/* Drive File ID with dropdown */}
-        <div className="flex-1 min-w-48 relative">
-          <label className="block text-xs font-medium text-gray-600 mb-1">Drive File ID</label>
-          <div className="flex gap-1.5">
-            <input
-              type="text"
-              required
-              value={form.driveFileId}
-              onChange={(e) => setForm((f) => ({ ...f, driveFileId: e.target.value }))}
-              placeholder="Paste Google Drive file ID"
-              className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            />
-            {dropdownOptions.length > 0 && (
-              <div className="relative">
-                <button
-                  type="button"
-                  onClick={() => setShowDropdown((v) => !v)}
-                  title="Use existing file ID"
-                  className="h-full px-2.5 border border-gray-200 rounded-lg bg-white hover:bg-indigo-50 hover:border-indigo-300 transition-colors text-gray-500 hover:text-indigo-600"
-                >
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                  </svg>
-                </button>
-                {showDropdown && (
-                  <div className="absolute right-0 top-full mt-1 z-20 bg-white border border-gray-200 rounded-xl shadow-lg min-w-72 overflow-hidden">
-                    <p className="text-xs text-gray-400 px-3 pt-2.5 pb-1 font-medium uppercase tracking-wide">Recently used file IDs</p>
-                    {dropdownOptions.map((id) => (
-                      <button
-                        key={id}
-                        type="button"
-                        onClick={() => { setForm((f) => ({ ...f, driveFileId: id })); setShowDropdown(false); }}
-                        className="w-full text-left px-3 py-2.5 text-sm font-mono text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 transition-colors border-t border-gray-100 first:border-0 truncate"
-                      >
-                        {id}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
+    <div className="rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden">
+      {/* Card header */}
+      <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 bg-gray-50/50">
+        <div className="flex items-center gap-3">
+          {/* Gradient avatar */}
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center flex-shrink-0 shadow-sm">
+            <span className="text-white text-sm font-bold">{avatarLetter}</span>
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-gray-900 leading-tight">{client.name}</p>
+            {config?.lastSyncedAt ? (
+              <p className="text-xs text-gray-400 mt-0.5">
+                Last synced {new Date(config.lastSyncedAt).toLocaleString()}
+              </p>
+            ) : (
+              <p className="text-xs text-gray-400 mt-0.5">Never synced</p>
             )}
           </div>
         </div>
+        <StatusBadge status={config?.syncStatus ?? null} />
+      </div>
 
-        {/* Sheet Name */}
-        <div className="flex-1 min-w-32">
-          <label className="block text-xs font-medium text-gray-600 mb-1">Sheet Name (tab)</label>
-          <input
-            type="text"
-            value={form.sheetName}
-            onChange={(e) => setForm((f) => ({ ...f, sheetName: e.target.value }))}
-            placeholder="e.g. college-place"
-            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          />
+      {/* Form body */}
+      <form onSubmit={handleSave} className="px-5 py-4 space-y-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {/* Drive File ID */}
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1.5">
+              Drive File ID
+            </label>
+            <div className="flex gap-1.5">
+              <input
+                type="text"
+                required
+                value={form.driveFileId}
+                onChange={(e) => setForm((f) => ({ ...f, driveFileId: e.target.value }))}
+                placeholder="Paste Google Drive file ID"
+                className="flex-1 min-w-0 border border-gray-200 rounded-lg px-3 py-2 text-sm font-mono text-gray-800 placeholder:text-gray-300 placeholder:font-sans focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-shadow"
+              />
+              {/* Copy button */}
+              <button
+                type="button"
+                onClick={handleCopy}
+                disabled={!form.driveFileId}
+                title="Copy file ID"
+                className="flex-shrink-0 w-9 flex items-center justify-center border border-gray-200 rounded-lg bg-white hover:bg-indigo-50 hover:border-indigo-300 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              >
+                {copied ? (
+                  <IconCheck className="w-4 h-4 text-emerald-600" />
+                ) : (
+                  <IconCopy className="w-4 h-4 text-gray-400 hover:text-indigo-600" />
+                )}
+              </button>
+              {/* Recent IDs dropdown */}
+              {dropdownOptions.length > 0 && (
+                <div className="relative" ref={dropdownRef}>
+                  <button
+                    type="button"
+                    onClick={() => setShowDropdown((v) => !v)}
+                    title="Use a recent file ID"
+                    className="flex-shrink-0 w-9 flex items-center justify-center border border-gray-200 rounded-lg bg-white hover:bg-indigo-50 hover:border-indigo-300 transition-colors"
+                  >
+                    <IconChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${showDropdown ? "rotate-180" : ""}`} />
+                  </button>
+                  {showDropdown && (
+                    <div className="absolute right-0 top-full mt-1 z-20 bg-white border border-gray-200 rounded-xl shadow-xl min-w-72 overflow-hidden">
+                      <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400 px-3 pt-3 pb-1">
+                        Recently used
+                      </p>
+                      {dropdownOptions.map((id) => (
+                        <button
+                          key={id}
+                          type="button"
+                          onClick={() => {
+                            setForm((f) => ({ ...f, driveFileId: id }));
+                            setShowDropdown(false);
+                          }}
+                          className="w-full text-left px-3 py-2.5 text-xs font-mono text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 transition-colors border-t border-gray-100 first:border-0 truncate"
+                        >
+                          {id}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Sheet Name */}
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1.5">
+              Sheet Name <span className="text-gray-400 font-normal">(tab)</span>
+            </label>
+            <input
+              type="text"
+              value={form.sheetName}
+              onChange={(e) => setForm((f) => ({ ...f, sheetName: e.target.value }))}
+              placeholder="e.g. college-place"
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-800 placeholder:text-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-shadow"
+            />
+          </div>
         </div>
 
-        <button
-          type="submit"
-          disabled={saving}
-          className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 disabled:opacity-60"
-        >
-          {saving ? "Saving…" : "Save"}
-        </button>
-        {msg && <span className="text-xs text-gray-500">{msg}</span>}
+        {/* Save button */}
+        <div className="flex items-center justify-end pt-1">
+          <button
+            type="submit"
+            disabled={saving}
+            className="inline-flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white px-4 py-2 rounded-lg text-sm font-medium shadow-sm shadow-indigo-200 disabled:opacity-60 disabled:cursor-not-allowed transition-all"
+          >
+            {saving ? (
+              <>
+                <svg className="w-3.5 h-3.5 animate-spin" viewBox="0 0 24 24" fill="none">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4l3-3-3-3v4a8 8 0 00-8 8h4z" />
+                </svg>
+                Saving
+              </>
+            ) : (
+              "Save"
+            )}
+          </button>
+        </div>
       </form>
     </div>
   );
 }
 
+/* ─── Section Card wrapper ────────────────────────────────────────────────────── */
+function SectionCard({
+  accentClass,
+  iconBgClass,
+  icon,
+  title,
+  subtitle,
+  children,
+}: {
+  accentClass: string;
+  iconBgClass: string;
+  icon: React.ReactNode;
+  title: string;
+  subtitle: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+      {/* Top accent bar */}
+      <div className={`h-1 w-full ${accentClass}`} />
+      {/* Section header */}
+      <div className="flex items-center gap-4 px-6 py-5 border-b border-gray-100">
+        <div className={`w-10 h-10 rounded-xl ${iconBgClass} flex items-center justify-center flex-shrink-0 shadow-sm`}>
+          {icon}
+        </div>
+        <div>
+          <h2 className="text-sm font-semibold text-gray-900">{title}</h2>
+          <p className="text-xs text-gray-500 mt-0.5">{subtitle}</p>
+        </div>
+      </div>
+      {/* Body */}
+      <div className="px-6 py-5">{children}</div>
+    </div>
+  );
+}
+
+/* ─── Page ───────────────────────────────────────────────────────────────────── */
 export default function AdminSettingsPage() {
   const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(true);
@@ -172,79 +407,89 @@ export default function AdminSettingsPage() {
   useEffect(() => {
     fetch("/api/clients")
       .then((r) => (r.ok ? r.json() : []))
-      .then((data) => {
-        setClients(data);
-        // Pre-populate known file IDs from already-configured clients
-        fetch("/api/clients")
-          .then(() => {})
-          .catch(() => {});
-      })
+      .then((data) => setClients(data))
       .finally(() => setLoading(false));
   }, []);
 
-  // Pre-load existing file IDs from all configs on mount
+  /* Pre-load existing file IDs from all client configs */
   useEffect(() => {
     if (clients.length === 0) return;
     clients.forEach((c) => {
       fetch(`/api/sync/drive?clientId=${c.id}`)
         .then((r) => (r.ok ? r.json() : null))
-        .then((data) => { if (data?.driveFileId) addId(data.driveFileId); });
+        .then((data) => {
+          if (data?.driveFileId) addId(data.driveFileId);
+        });
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [clients]);
 
   return (
-    <div className="space-y-8 max-w-3xl">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Settings</h1>
-        <p className="text-sm text-gray-500 mt-1">Manage Google Drive integrations and templates.</p>
+    <div className="max-w-3xl space-y-2">
+      {/* Page header */}
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Settings</h1>
+        <p className="text-sm text-gray-500 mt-1.5">
+          Manage Google Drive integrations and download report templates.
+        </p>
       </div>
 
-      {/* Google Drive Section */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-5">
-        <div className="flex items-center gap-3">
-          <span className="text-2xl">📁</span>
-          <div>
-            <h2 className="text-base font-semibold text-gray-900">Google Drive</h2>
-            <p className="text-sm text-gray-500">Configure the Drive file and sheet for each client.</p>
-          </div>
-        </div>
-        {loading ? (
-          <p className="text-gray-400 text-sm">Loading clients…</p>
-        ) : clients.length === 0 ? (
-          <p className="text-gray-400 text-sm">No clients found. Create clients first.</p>
-        ) : (
-          <div className="space-y-4">
-            {clients.map((c) => (
-              <DriveConfigRow
-                key={c.id}
-                client={c}
-                existingFileIds={existingFileIds}
-                onFileSaved={addId}
-              />
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Download Template Section */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-        <div className="flex items-center gap-3 mb-4">
-          <span className="text-2xl">📥</span>
-          <div>
-            <h2 className="text-base font-semibold text-gray-900">Download Template</h2>
-            <p className="text-sm text-gray-500">Download the Excel template for data entry.</p>
-          </div>
-        </div>
-        <a
-          href="/api/template"
-          download
-          className="inline-flex items-center gap-2 bg-indigo-600 text-white px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors"
+      <div className="space-y-6">
+        {/* ── Google Drive Integration ── */}
+        <SectionCard
+          accentClass="bg-gradient-to-r from-indigo-500 to-violet-500"
+          iconBgClass="bg-gradient-to-br from-indigo-500 to-violet-600"
+          icon={<IconDrive className="w-5 h-5 text-white" />}
+          title="Google Drive Integration"
+          subtitle="Configure the Drive file and sheet tab for each client."
         >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-          </svg>
-          Download Template (.xlsx)
-        </a>
+          {loading ? (
+            <div className="space-y-4">
+              <SkeletonRow />
+              <SkeletonRow />
+              <SkeletonRow />
+            </div>
+          ) : clients.length === 0 ? (
+            <EmptyState />
+          ) : (
+            <div className="space-y-3">
+              {clients.map((c) => (
+                <DriveConfigRow
+                  key={c.id}
+                  client={c}
+                  existingFileIds={existingFileIds}
+                  onFileSaved={addId}
+                />
+              ))}
+            </div>
+          )}
+        </SectionCard>
+
+        {/* ── Excel Template ── */}
+        <SectionCard
+          accentClass="bg-gradient-to-r from-emerald-500 to-teal-500"
+          iconBgClass="bg-gradient-to-br from-emerald-500 to-teal-600"
+          icon={<IconSheet className="w-5 h-5 text-white" />}
+          title="Excel Template"
+          subtitle="Download the standard Excel template used for data entry and reporting."
+        >
+          <div className="flex items-center justify-between">
+            <div className="space-y-1">
+              <p className="text-sm font-medium text-gray-800">NDG Report Template</p>
+              <p className="text-xs text-gray-400">
+                .xlsx format &mdash; compatible with Microsoft Excel and Google Sheets
+              </p>
+            </div>
+            <a
+              href="/api/template"
+              download
+              className="inline-flex items-center gap-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white px-4 py-2.5 rounded-lg text-sm font-medium shadow-sm shadow-emerald-200 transition-all flex-shrink-0"
+            >
+              <IconDownload className="w-4 h-4" />
+              Download Template
+            </a>
+          </div>
+        </SectionCard>
       </div>
     </div>
   );

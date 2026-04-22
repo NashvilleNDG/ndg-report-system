@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Sidebar from "./Sidebar";
 import Topbar from "./Topbar";
+import { ToastProvider } from "@/components/ui/Toast";
 
 interface Props {
   role:     string;
@@ -16,6 +17,7 @@ export default function DashboardShell({ role, name, email, user, children }: Pr
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
+    <ToastProvider>
     <div className="flex h-screen overflow-hidden" style={{ background: "#f5f7fa" }}>
 
       {/* ── Mobile backdrop ───────────────────────────────────────────────── */}
@@ -63,5 +65,6 @@ export default function DashboardShell({ role, name, email, user, children }: Pr
         </main>
       </div>
     </div>
+    </ToastProvider>
   );
 }

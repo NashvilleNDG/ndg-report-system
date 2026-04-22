@@ -3,6 +3,12 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { currentPeriod, periodLabel } from "@/lib/report-utils";
+import dynamic from "next/dynamic";
+
+const PublishedTrendChart = dynamic(
+  () => import("@/components/charts/PublishedTrendChart"),
+  { ssr: false }
+);
 
 export default async function AdminOverviewPage() {
   const session = await auth();
@@ -23,6 +29,7 @@ export default async function AdminOverviewPage() {
     prevMonthPublished,
     allActiveClients,
     recentActivity,
+    publishedByPeriod,
   ] = await Promise.all([
     prisma.client.count(),
     prisma.client.count({ where: { isActive: true } }),
@@ -57,6 +64,16 @@ export default async function AdminOverviewPage() {
         client: { select: { id: true, name: true } },
       },
     }),
+    // Published counts for last 6 months
+    prisma.report.groupBy({
+      by: ["period"],
+      where: {
+        status: "PUBLISHED",
+        period: { gte: (() => { const d = new Date(); d.setMonth(d.getMonth() - 5); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`; })() }
+      },
+      _count: { id: true },
+      orderBy: { period: "asc" }
+    }),
   ]);
 
   const publishedTrend = prevMonthPublished > 0
@@ -71,6 +88,17 @@ export default async function AdminOverviewPage() {
   const completionPct = activeClients > 0 ? Math.round((withReport.length / activeClients) * 100) : 0;
 
   const monthDisplay = periodLabel(period);
+
+  // Format groupBy results into chart-friendly shape: "Nov 24", "Dec 24", etc.
+  const chartData = publishedByPeriod.map((row) => {
+    const [year, month] = row.period.split("-");
+    const label = new Date(Number(year), Number(month) - 1, 1).toLocaleDateString("en-US", {
+      month: "short",
+      year: "2-digit",
+    });
+    return { month: label, count: row._count.id };
+  });
+  const totalPublishedSixMonths = chartData.reduce((sum, r) => sum + r.count, 0);
 
   function timeAgo(date: Date | string) {
     const d = new Date(date);
@@ -323,6 +351,28 @@ export default async function AdminOverviewPage() {
                   <span className="text-xs text-gray-300 whitespace-nowrap flex-shrink-0">{timeAgo(r.updatedAt)}</span>
                 </div>
               ))}
+            </div>
+          </div>
+
+          {/* Published Reports — Last 6 Months */}
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <div className="px-5 py-4 border-b border-gray-100">
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 bg-indigo-50 rounded-md flex items-center justify-center flex-shrink-0">
+                  <svg className="w-3.5 h-3.5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  </svg>
+                </div>
+                <div>
+                  <h2 className="text-base font-bold text-gray-800 leading-tight">Published This Year</h2>
+                  <p className="text-xs text-gray-400 mt-0.5">
+                    {totalPublishedSixMonths} report{totalPublishedSixMonths !== 1 ? "s" : ""} over the last 6 months
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="px-3 pt-3 pb-2">
+              <PublishedTrendChart data={chartData} />
             </div>
           </div>
 

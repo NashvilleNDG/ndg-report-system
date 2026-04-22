@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useToast } from "@/components/ui/Toast";
 
 interface Me { id: string; name: string; email: string; role: string }
 
@@ -92,24 +93,24 @@ export default function ProfilePage() {
   const [cur,  setCur]  = useState("");
   const [nw,   setNw]   = useState("");
   const [conf, setConf] = useState("");
-  const [saving,  setSaving]  = useState(false);
-  const [message, setMessage] = useState<{ text: string; ok: boolean } | null>(null);
+  const [saving, setSaving] = useState(false);
+  const { success: toastSuccess, error: toastError } = useToast();
 
   useEffect(() => { fetch("/api/me").then(r => r.ok ? r.json() : null).then(setMe); }, []);
 
   const submit = async (e: React.FormEvent) => {
-    e.preventDefault(); setMessage(null);
-    if (nw !== conf)   { setMessage({ text: "New passwords do not match.", ok: false }); return; }
-    if (nw.length < 6) { setMessage({ text: "Password must be at least 6 characters.", ok: false }); return; }
+    e.preventDefault();
+    if (nw !== conf)   { toastError("Passwords don't match", "Please make sure both fields are identical."); return; }
+    if (nw.length < 6) { toastError("Password too short", "Your password must be at least 6 characters."); return; }
     setSaving(true);
     try {
       const res  = await fetch("/api/me", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ currentPassword: cur, newPassword: nw }) });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Failed");
-      setMessage({ text: "Password updated successfully!", ok: true });
+      toastSuccess("Password updated!", "Your password has been changed successfully.");
       setCur(""); setNw(""); setConf("");
     } catch (err) {
-      setMessage({ text: err instanceof Error ? err.message : "Something went wrong", ok: false });
+      toastError("Update failed", err instanceof Error ? err.message : "Something went wrong.");
     } finally { setSaving(false); }
   };
 
@@ -264,18 +265,6 @@ export default function ProfilePage() {
                 ? <><svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg> Passwords match</>
                 : <><svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg> Passwords do not match</>}
             </p>
-          )}
-
-          {/* Status banner */}
-          {message && (
-            <div className={`flex items-center gap-2.5 px-4 py-3 rounded-xl text-sm font-medium ${
-              message.ok ? "bg-emerald-50 border border-emerald-200 text-emerald-700"
-                         : "bg-red-50 border border-red-200 text-red-600"}`}>
-              {message.ok
-                ? <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                : <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>}
-              {message.text}
-            </div>
           )}
 
           {/* Footer */}

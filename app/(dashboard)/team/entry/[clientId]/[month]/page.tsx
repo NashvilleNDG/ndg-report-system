@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import { periodLabel } from "@/lib/report-utils";
 import Link from "next/link";
+import { useToast } from "@/components/ui/Toast";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 const TABS = ["Instagram", "Facebook", "TikTok", "YouTube", "GMB", "Website", "Email"] as const;
@@ -158,7 +159,6 @@ export default function TeamEntryPage() {
   const [activeTab,  setActiveTab]  = useState<Tab>("Instagram");
   const [reportId,   setReportId]   = useState<string | null>(null);
   const [saving,     setSaving]     = useState(false);
-  const [saveMsg,    setSaveMsg]    = useState<{ text: string; ok: boolean } | null>(null);
   const [loading,    setLoading]    = useState(true);
   const [clientName, setClientName] = useState("");
 
@@ -243,7 +243,6 @@ export default function TeamEntryPage() {
 
   const handleSave = async () => {
     setSaving(true);
-    setSaveMsg(null);
     try {
       const id = await ensureReport();
       if (!id) throw new Error("No report ID");
@@ -261,14 +260,16 @@ export default function TeamEntryPage() {
         }),
       });
       if (!res.ok) { const d = await res.json(); throw new Error(d.error ?? "Save failed"); }
-      setSaveMsg({ text: "All data saved successfully!", ok: true });
-      setTimeout(() => setSaveMsg(null), 4000);
+      toastSuccess("Data saved!", "All platform metrics have been saved successfully.");
     } catch (err) {
-      setSaveMsg({ text: err instanceof Error ? err.message : "Save failed", ok: false });
+      toastError("Save failed", err instanceof Error ? err.message : "Something went wrong.");
     } finally {
       setSaving(false);
     }
   };
+
+  const { success: toastSuccess, error: toastError } = useToast();
+  const tabScrollRef = useRef<HTMLDivElement>(null);
 
   const cfg     = PLATFORM_CONFIG[activeTab];
   const [values, setValues] = stateMap[activeTab];
@@ -333,11 +334,41 @@ export default function TeamEntryPage() {
         </div>
       </div>
 
+      {/* ── Mobile horizontal tab bar (hidden on desktop) ─────────────────── */}
+      <div className="lg:hidden bg-white rounded-2xl shadow-sm border border-gray-100 p-3">
+        <div ref={tabScrollRef} className="flex gap-2 overflow-x-auto pb-1 scrollbar-none" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
+          {TABS.map((tab) => {
+            const c = PLATFORM_CONFIG[tab];
+            const active = tab === activeTab;
+            const filled = hasData(stateMap[tab][0]);
+            return (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`relative flex-shrink-0 flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all duration-150 ${
+                  active
+                    ? "bg-gray-900 text-white shadow-sm"
+                    : "bg-gray-50 text-gray-600 hover:bg-gray-100"
+                }`}
+              >
+                <div className={`w-5 h-5 rounded-md flex items-center justify-center flex-shrink-0 bg-gradient-to-br ${c.gradient}`}>
+                  <span className="text-white scale-[0.6]">{c.icon}</span>
+                </div>
+                {tab}
+                {filled && (
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 flex-shrink-0" />
+                )}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
       {/* ── Two-column body ─────────────────────────────────────────────────── */}
       <div className="grid grid-cols-1 lg:grid-cols-[260px_1fr] gap-5">
 
-        {/* LEFT: Platform selector ─────────────────────────────────────────── */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-3 h-fit">
+        {/* LEFT: Platform selector — desktop only ─────────────────────────── */}
+        <div className="hidden lg:block bg-white rounded-2xl shadow-sm border border-gray-100 p-3 h-fit">
           <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-2 pb-2">Platforms</p>
           <div className="space-y-1">
             {TABS.map((tab) => {
@@ -505,25 +536,6 @@ export default function TeamEntryPage() {
           </svg>
           Preview Report
         </Link>
-
-        {saveMsg && (
-          <div className={`flex items-center gap-2 text-sm font-medium px-4 py-2 rounded-xl ${
-            saveMsg.ok
-              ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-              : "bg-red-50 text-red-700 border border-red-200"
-          }`}>
-            {saveMsg.ok ? (
-              <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            ) : (
-              <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            )}
-            {saveMsg.text}
-          </div>
-        )}
 
         <div className="ml-auto text-xs text-gray-400 hidden sm:block">
           {filledCount === TABS.length
