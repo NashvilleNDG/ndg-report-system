@@ -61,7 +61,7 @@ export default async function ClientMonthReportPage({ params }: PageProps) {
         select: {
           instagram: { select: { follows: true } },
           facebook:  { select: { follows: true } },
-          youtube:   { select: { subscribers: true } },
+          youtube:   { select: { views: true } },
           tiktok:    { select: { follows: true } },
         },
       },
