@@ -14,8 +14,11 @@ export default async function ClientReportsPage() {
   const reports = await prisma.report.findMany({
     where: { clientId, status: "PUBLISHED" },
     orderBy: { period: "desc" },
-    select: { id: true, period: true, status: true, publishedAt: true },
+    select: { id: true, period: true, status: true, publishedAt: true, updatedAt: true },
   });
+
+  const NOW = Date.now();
+  const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
 
   return (
     <div className="space-y-6 page-content">
@@ -40,6 +43,7 @@ export default async function ClientReportsPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 stagger-children">
           {reports.map((r, i) => {
             const isLatest = i === 0;
+            const isNew = r.publishedAt && (NOW - new Date(r.publishedAt).getTime()) < SEVEN_DAYS_MS;
             return (
               <Link
                 key={r.id}
@@ -58,11 +62,19 @@ export default async function ClientReportsPage() {
                       {r.period.split("-")[0].slice(2)}
                     </span>
                   </div>
-                  {isLatest && (
-                    <span className="bg-indigo-100 text-indigo-700 text-xs font-semibold px-2.5 py-1 rounded-full border border-indigo-200">
-                      Latest
-                    </span>
-                  )}
+                  <div className="flex items-center gap-1.5">
+                    {isNew && (
+                      <span className="inline-flex items-center gap-1 bg-emerald-100 text-emerald-700 text-xs font-bold px-2 py-0.5 rounded-full border border-emerald-200 animate-pulse">
+                        <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full" />
+                        NEW
+                      </span>
+                    )}
+                    {isLatest && (
+                      <span className="bg-indigo-100 text-indigo-700 text-xs font-semibold px-2.5 py-1 rounded-full border border-indigo-200">
+                        Latest
+                      </span>
+                    )}
+                  </div>
                 </div>
 
                 {/* Period Name */}

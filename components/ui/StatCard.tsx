@@ -1,10 +1,24 @@
 interface StatCardProps {
   label: string;
   value: string;
+  /** Numeric version of value — used with prevValue to auto-compute % change */
+  rawValue?: number | null;
+  /** Previous period's numeric value for % change computation */
+  prevValue?: number | null;
   change?: string;
   positive?: boolean;
   icon?: string;
   accent?: "indigo" | "pink" | "blue" | "red" | "teal" | "orange" | "violet" | "emerald" | "sky";
+}
+
+function computePctChange(
+  raw?: number | null,
+  prev?: number | null,
+): { change: string; positive: boolean } | null {
+  if (raw == null || prev == null) return null;
+  if (prev === 0) return raw > 0 ? { change: "New", positive: true } : null;
+  const delta = ((raw - prev) / Math.abs(prev)) * 100;
+  return { change: `${Math.abs(delta).toFixed(1)}%`, positive: delta >= 0 };
 }
 
 const ACCENT_STYLES: Record<NonNullable<StatCardProps["accent"]>, { border: string; glow: string }> = {
@@ -19,8 +33,14 @@ const ACCENT_STYLES: Record<NonNullable<StatCardProps["accent"]>, { border: stri
   sky:     { border: "border-l-sky-500",     glow: "hover:shadow-sky-100/50" },
 };
 
-export default function StatCard({ label, value, change, positive, icon, accent = "indigo" }: StatCardProps) {
+export default function StatCard({ label, value, rawValue, prevValue, change, positive, icon, accent = "indigo" }: StatCardProps) {
   const { border, glow } = ACCENT_STYLES[accent];
+
+  // Auto-compute % change from rawValue/prevValue if explicit change not given
+  const computed = computePctChange(rawValue, prevValue);
+  const displayChange = change ?? computed?.change;
+  const displayPositive = positive ?? computed?.positive;
+
   return (
     <div className={`relative bg-white rounded-xl border border-gray-100 border-l-4 ${border} p-4 flex flex-col gap-1.5 transition-all duration-200 hover:shadow-lg ${glow} hover:-translate-y-0.5 overflow-hidden`}>
       {/* Subtle top highlight */}
@@ -30,16 +50,16 @@ export default function StatCard({ label, value, change, positive, icon, accent 
         {icon && <span className="text-base leading-none opacity-70">{icon}</span>}
       </div>
       <div className="text-3xl font-black text-gray-900 tracking-tight tabular-nums leading-none mt-1">{value}</div>
-      {change !== undefined && (
+      {displayChange !== undefined && (
         <div
           className={`inline-flex items-center gap-1 text-xs font-bold px-2 py-0.5 rounded-full w-fit mt-0.5 ${
-            positive
+            displayPositive
               ? "bg-emerald-50 text-emerald-700 border border-emerald-100"
               : "bg-red-50 text-red-700 border border-red-100"
           }`}
         >
-          <span>{positive ? "▲" : "▼"}</span>
-          <span>{change}</span>
+          <span>{displayPositive ? "▲" : "▼"}</span>
+          <span>{displayChange}</span>
         </div>
       )}
     </div>

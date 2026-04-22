@@ -2,11 +2,19 @@ import StatCard from "@/components/ui/StatCard";
 import { formatNumber } from "@/lib/report-utils";
 import type { InstagramMetrics, FacebookMetrics, YouTubeMetrics, TikTokMetrics } from "@/types/report";
 
+interface PrevSocial {
+  instagram?: Partial<InstagramMetrics> | null;
+  facebook?:  Partial<FacebookMetrics>  | null;
+  youtube?:   Partial<YouTubeMetrics>   | null;
+  tiktok?:    Partial<TikTokMetrics>    | null;
+}
+
 interface SocialMediaSectionProps {
   instagram?: InstagramMetrics | null;
   facebook?:  FacebookMetrics  | null;
   youtube?:   YouTubeMetrics   | null;
   tiktok?:    TikTokMetrics    | null;
+  prev?:      PrevSocial | null;
 }
 
 // ── Platform icon + colour config ─────────────────────────────────────────────
@@ -54,44 +62,44 @@ const PLATFORMS = [
 ] as const;
 
 // ── Per-platform stat rows ────────────────────────────────────────────────────
-function InstagramStats({ d }: { d: InstagramMetrics }) {
+function InstagramStats({ d, prev }: { d: InstagramMetrics; prev?: Partial<InstagramMetrics> | null }) {
   return (
     <div className="grid grid-cols-2 gap-3">
-      <StatCard label="Views"               value={formatNumber(d.views)} accent="pink" />
-      <StatCard label="Content Interactions" value={formatNumber(d.contentInteractions)} accent="pink" />
-      <StatCard label="Follows"             value={formatNumber(d.follows)} accent="pink" />
-      <StatCard label="Number of Posts"     value={formatNumber(d.numberOfPosts)} accent="pink" />
+      <StatCard label="Views"               value={formatNumber(d.views)}               rawValue={d.views}               prevValue={prev?.views}               accent="pink" />
+      <StatCard label="Content Interactions" value={formatNumber(d.contentInteractions)} rawValue={d.contentInteractions} prevValue={prev?.contentInteractions} accent="pink" />
+      <StatCard label="Follows"             value={formatNumber(d.follows)}             rawValue={d.follows}             prevValue={prev?.follows}             accent="pink" />
+      <StatCard label="Number of Posts"     value={formatNumber(d.numberOfPosts)}       rawValue={d.numberOfPosts}       prevValue={prev?.numberOfPosts}       accent="pink" />
     </div>
   );
 }
 
-function FacebookStats({ d }: { d: FacebookMetrics }) {
+function FacebookStats({ d, prev }: { d: FacebookMetrics; prev?: Partial<FacebookMetrics> | null }) {
   return (
     <div className="grid grid-cols-2 gap-3">
-      <StatCard label="Views"               value={formatNumber(d.views)} accent="blue" />
-      <StatCard label="Content Interactions" value={formatNumber(d.contentInteractions)} accent="blue" />
-      <StatCard label="Follows"             value={formatNumber(d.follows)} accent="blue" />
-      <StatCard label="Number of Posts"     value={formatNumber(d.numberOfPosts)} accent="blue" />
+      <StatCard label="Views"               value={formatNumber(d.views)}               rawValue={d.views}               prevValue={prev?.views}               accent="blue" />
+      <StatCard label="Content Interactions" value={formatNumber(d.contentInteractions)} rawValue={d.contentInteractions} prevValue={prev?.contentInteractions} accent="blue" />
+      <StatCard label="Follows"             value={formatNumber(d.follows)}             rawValue={d.follows}             prevValue={prev?.follows}             accent="blue" />
+      <StatCard label="Number of Posts"     value={formatNumber(d.numberOfPosts)}       rawValue={d.numberOfPosts}       prevValue={prev?.numberOfPosts}       accent="blue" />
     </div>
   );
 }
 
-function YouTubeStats({ d }: { d: YouTubeMetrics }) {
+function YouTubeStats({ d, prev }: { d: YouTubeMetrics; prev?: Partial<YouTubeMetrics> | null }) {
   return (
     <div className="grid grid-cols-2 gap-3">
-      <StatCard label="Views"            value={formatNumber(d.views)} accent="red" />
-      <StatCard label="Number of Videos" value={formatNumber(d.numberOfVideos)} accent="red" />
+      <StatCard label="Views"            value={formatNumber(d.views)}          rawValue={d.views}          prevValue={prev?.views}          accent="red" />
+      <StatCard label="Number of Videos" value={formatNumber(d.numberOfVideos)} rawValue={d.numberOfVideos} prevValue={prev?.numberOfVideos} accent="red" />
     </div>
   );
 }
 
-function TikTokStats({ d }: { d: TikTokMetrics }) {
+function TikTokStats({ d, prev }: { d: TikTokMetrics; prev?: Partial<TikTokMetrics> | null }) {
   return (
     <div className="grid grid-cols-2 gap-3">
-      <StatCard label="Views"               value={formatNumber(d.views)} accent="indigo" />
-      <StatCard label="Content Interactions" value={formatNumber(d.contentInteractions)} accent="indigo" />
-      <StatCard label="Follows"             value={formatNumber(d.follows)} accent="indigo" />
-      <StatCard label="Number of Reels"     value={formatNumber(d.numberOfReels)} accent="indigo" />
+      <StatCard label="Views"               value={formatNumber(d.views)}               rawValue={d.views}               prevValue={prev?.views}               accent="indigo" />
+      <StatCard label="Content Interactions" value={formatNumber(d.contentInteractions)} rawValue={d.contentInteractions} prevValue={prev?.contentInteractions} accent="indigo" />
+      <StatCard label="Follows"             value={formatNumber(d.follows)}             rawValue={d.follows}             prevValue={prev?.follows}             accent="indigo" />
+      <StatCard label="Number of Reels"     value={formatNumber(d.numberOfReels)}       rawValue={d.numberOfReels}       prevValue={prev?.numberOfReels}       accent="indigo" />
     </div>
   );
 }
@@ -119,13 +127,19 @@ function PlatformCard({
 }
 
 // ── Section ───────────────────────────────────────────────────────────────────
-export default function SocialMediaSection({ instagram, facebook, youtube, tiktok }: SocialMediaSectionProps) {
+export default function SocialMediaSection({ instagram, facebook, youtube, tiktok, prev }: SocialMediaSectionProps) {
   const hasPlatforms = instagram || facebook || youtube || tiktok;
 
   if (!hasPlatforms) {
     return (
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 text-center text-gray-400">
-        No social media data available.
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 text-center">
+        <div className="w-12 h-12 bg-gray-50 rounded-xl flex items-center justify-center mx-auto mb-3">
+          <svg className="w-6 h-6 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+          </svg>
+        </div>
+        <p className="text-sm font-medium text-gray-500">No social media data this month</p>
+        <p className="text-xs text-gray-400 mt-1">Data will appear once submitted by your team.</p>
       </div>
     );
   }
@@ -147,22 +161,22 @@ export default function SocialMediaSection({ instagram, facebook, youtube, tikto
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         {instagram && (
           <PlatformCard label={PLATFORMS[0].label} icon={PLATFORMS[0].icon} color={PLATFORMS[0].color}>
-            <InstagramStats d={instagram} />
+            <InstagramStats d={instagram} prev={prev?.instagram} />
           </PlatformCard>
         )}
         {facebook && (
           <PlatformCard label={PLATFORMS[1].label} icon={PLATFORMS[1].icon} color={PLATFORMS[1].color}>
-            <FacebookStats d={facebook} />
+            <FacebookStats d={facebook} prev={prev?.facebook} />
           </PlatformCard>
         )}
         {youtube && (
           <PlatformCard label={PLATFORMS[2].label} icon={PLATFORMS[2].icon} color={PLATFORMS[2].color}>
-            <YouTubeStats d={youtube} />
+            <YouTubeStats d={youtube} prev={prev?.youtube} />
           </PlatformCard>
         )}
         {tiktok && (
           <PlatformCard label={PLATFORMS[3].label} icon={PLATFORMS[3].icon} color={PLATFORMS[3].color}>
-            <TikTokStats d={tiktok} />
+            <TikTokStats d={tiktok} prev={prev?.tiktok} />
           </PlatformCard>
         )}
       </div>

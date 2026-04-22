@@ -2,7 +2,12 @@ import StatCard from "@/components/ui/StatCard";
 import { formatNumber } from "@/lib/report-utils";
 import type { GMBMetrics } from "@/types/report";
 
-export default function GMBSection({ data }: { data: GMBMetrics }) {
+interface GMBSectionProps {
+  data: GMBMetrics;
+  prev?: Partial<GMBMetrics> | null;
+}
+
+export default function GMBSection({ data, prev }: GMBSectionProps) {
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-3">
@@ -29,10 +34,10 @@ export default function GMBSection({ data }: { data: GMBMetrics }) {
         </div>
         <div className="p-5">
           <div className="grid grid-cols-2 gap-3">
-            <StatCard label="Profile Interactions" value={formatNumber(data.profileInteractions)} accent="orange" />
-            <StatCard label="Views"                value={formatNumber(data.views)} accent="orange" />
-            <StatCard label="Searches"             value={formatNumber(data.searches)} accent="orange" />
-            <StatCard label="Number of Reviews"    value={formatNumber(data.numberOfReviews)} accent="orange" />
+            <StatCard label="Profile Interactions" value={formatNumber(data.profileInteractions)} rawValue={data.profileInteractions} prevValue={prev?.profileInteractions} accent="orange" />
+            <StatCard label="Views"                value={formatNumber(data.views)}               rawValue={data.views}               prevValue={prev?.views}               accent="orange" />
+            <StatCard label="Searches"             value={formatNumber(data.searches)}            rawValue={data.searches}            prevValue={prev?.searches}            accent="orange" />
+            <StatCard label="Number of Reviews"    value={formatNumber(data.numberOfReviews)}     rawValue={data.numberOfReviews}     prevValue={prev?.numberOfReviews}     accent="orange" />
           </div>
         </div>
       </div>

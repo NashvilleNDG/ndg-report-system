@@ -5,12 +5,17 @@ interface ReportHeaderProps {
   clientName: string;
   period: string;
   status: string;
+  updatedAt?: Date | string | null;
 }
 
-export default function ReportHeader({ clientName, period, status }: ReportHeaderProps) {
+export default function ReportHeader({ clientName, period, status, updatedAt }: ReportHeaderProps) {
   const isPublished = status === "PUBLISHED";
   const [year, month] = period.split("-");
   const monthName = new Date(parseInt(year), parseInt(month) - 1, 1).toLocaleDateString("en-US", { month: "long" });
+
+  const lastUpdated = updatedAt
+    ? new Date(updatedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
+    : null;
 
   return (
     <div className="bg-gradient-to-r from-indigo-600 to-blue-700 rounded-2xl p-6 shadow-lg shadow-indigo-200/40">
@@ -23,6 +28,14 @@ export default function ReportHeader({ clientName, period, status }: ReportHeade
           <div>
             <h1 className="text-xl font-bold text-white">{clientName}</h1>
             <p className="text-indigo-200 text-sm mt-0.5">{periodLabel(period)} Performance Report</p>
+            {lastUpdated && (
+              <p className="text-indigo-300 text-xs mt-1 flex items-center gap-1">
+                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Last updated {lastUpdated}
+              </p>
+            )}
           </div>
         </div>
         <div className="flex items-center gap-3">

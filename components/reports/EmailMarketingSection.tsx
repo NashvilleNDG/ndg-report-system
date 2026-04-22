@@ -2,7 +2,12 @@ import StatCard from "@/components/ui/StatCard";
 import { formatNumber } from "@/lib/report-utils";
 import type { EmailMarketingMetrics } from "@/types/report";
 
-export default function EmailMarketingSection({ data }: { data: EmailMarketingMetrics }) {
+interface EmailMarketingSectionProps {
+  data: EmailMarketingMetrics;
+  prev?: Partial<EmailMarketingMetrics> | null;
+}
+
+export default function EmailMarketingSection({ data, prev }: EmailMarketingSectionProps) {
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-3">
@@ -33,8 +38,8 @@ export default function EmailMarketingSection({ data }: { data: EmailMarketingMe
         </div>
         <div className="p-5">
           <div className="grid grid-cols-2 gap-3">
-            <StatCard label="Number of Emails" value={formatNumber(data.numberOfEmails)} accent="violet" />
-            <StatCard label="Total Sends"       value={formatNumber(data.totalSends)} accent="violet" />
+            <StatCard label="Number of Emails" value={formatNumber(data.numberOfEmails)} rawValue={data.numberOfEmails} prevValue={prev?.numberOfEmails} accent="violet" />
+            <StatCard label="Total Sends"       value={formatNumber(data.totalSends)}     rawValue={data.totalSends}     prevValue={prev?.totalSends}     accent="violet" />
             {data.openRate != null && (
               <StatCard label="Open Rate" value={`${data.openRate.toFixed(1)}%`} accent="violet" />
             )}

@@ -41,7 +41,7 @@ export default function TrendChartsSection({ charts, totalMonths = 6 }: TrendCha
           <div>
             <h2 className="text-base font-bold text-gray-800">Historical Trends</h2>
             <p className="text-[11px] text-gray-400">
-              Last {range} month{range !== 1 ? "s" : ""} of performance data
+              Last {range} months of performance data
             </p>
           </div>
         </div>

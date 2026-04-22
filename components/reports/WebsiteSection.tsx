@@ -2,7 +2,12 @@ import StatCard from "@/components/ui/StatCard";
 import { formatNumber } from "@/lib/report-utils";
 import type { WebsiteMetrics } from "@/types/report";
 
-export default function WebsiteSection({ data }: { data: WebsiteMetrics }) {
+interface WebsiteSectionProps {
+  data: WebsiteMetrics;
+  prev?: Partial<WebsiteMetrics> | null;
+}
+
+export default function WebsiteSection({ data, prev }: WebsiteSectionProps) {
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-3">
@@ -28,10 +33,10 @@ export default function WebsiteSection({ data }: { data: WebsiteMetrics }) {
         </div>
         <div className="p-5">
           <div className="grid grid-cols-2 gap-3">
-            <StatCard label="Total Users" value={formatNumber(data.totalUsers)} accent="teal" />
-            <StatCard label="New Users"   value={formatNumber(data.newUsers)} accent="teal" />
-            <StatCard label="Visits"      value={formatNumber(data.views)} accent="teal" />
-            <StatCard label="Event Count" value={formatNumber(data.eventCount)} accent="teal" />
+            <StatCard label="Total Users" value={formatNumber(data.totalUsers)} rawValue={data.totalUsers} prevValue={prev?.totalUsers} accent="teal" />
+            <StatCard label="New Users"   value={formatNumber(data.newUsers)}   rawValue={data.newUsers}   prevValue={prev?.newUsers}   accent="teal" />
+            <StatCard label="Visits"      value={formatNumber(data.views)}      rawValue={data.views}      prevValue={prev?.views}      accent="teal" />
+            <StatCard label="Event Count" value={formatNumber(data.eventCount)} rawValue={data.eventCount} prevValue={prev?.eventCount} accent="teal" />
           </div>
         </div>
       </div>

@@ -17,6 +17,21 @@ interface PageProps {
   params: Promise<{ month: string }>;
 }
 
+/** Prisma select shape for previous-period comparison data */
+const PREV_SELECT = {
+  socialMedia: {
+    select: {
+      instagram: { select: { views: true, contentInteractions: true, follows: true, numberOfPosts: true } },
+      facebook:  { select: { views: true, contentInteractions: true, follows: true, numberOfPosts: true } },
+      youtube:   { select: { views: true, numberOfVideos: true } },
+      tiktok:    { select: { views: true, contentInteractions: true, follows: true, numberOfReels: true } },
+    },
+  },
+  websiteData:    { select: { totalUsers: true, newUsers: true, views: true, eventCount: true } },
+  gmbData:        { select: { profileInteractions: true, views: true, searches: true, numberOfReviews: true } },
+  emailMarketing: { select: { numberOfEmails: true, totalSends: true, openRate: true } },
+} as const;
+
 export default async function ClientMonthReportPage({ params }: PageProps) {
   const { month } = await params;
   const session = await auth();
@@ -49,6 +64,14 @@ export default async function ClientMonthReportPage({ params }: PageProps) {
   const currentIndex = allReports.findIndex((r) => r.period === month);
   const prevPeriod = currentIndex > 0 ? allReports[currentIndex - 1].period : null;
   const nextPeriod = currentIndex < allReports.length - 1 ? allReports[currentIndex + 1].period : null;
+
+  // ── Previous period report for % change comparison ──────────────────────────
+  const prevReport = prevPeriod
+    ? await prisma.report.findUnique({
+        where: { clientId_period: { clientId, period: prevPeriod } },
+        select: PREV_SELECT,
+      })
+    : null;
 
   // ── Historical trend data (6 published reports UP TO and including this month) ─
   const historicalReports = await prisma.report.findMany({
@@ -83,6 +106,7 @@ export default async function ClientMonthReportPage({ params }: PageProps) {
         clientName={report.client.name}
         period={report.period}
         status={report.status}
+        updatedAt={report.updatedAt}
       />
 
       {/* Report Notes */}
@@ -99,12 +123,19 @@ export default async function ClientMonthReportPage({ params }: PageProps) {
           facebook={fullReport.socialMedia.facebook}
           youtube={fullReport.socialMedia.youtube}
           tiktok={fullReport.socialMedia.tiktok}
+          prev={prevReport?.socialMedia ?? null}
         />
       )}
 
-      {fullReport.websiteData && <WebsiteSection data={fullReport.websiteData} />}
-      {fullReport.gmbData && <GMBSection data={fullReport.gmbData} />}
-      {fullReport.emailMarketing && <EmailMarketingSection data={fullReport.emailMarketing} />}
+      {fullReport.websiteData && (
+        <WebsiteSection data={fullReport.websiteData} prev={prevReport?.websiteData ?? null} />
+      )}
+      {fullReport.gmbData && (
+        <GMBSection data={fullReport.gmbData} prev={prevReport?.gmbData ?? null} />
+      )}
+      {fullReport.emailMarketing && (
+        <EmailMarketingSection data={fullReport.emailMarketing} prev={prevReport?.emailMarketing ?? null} />
+      )}
 
       {/* Historical Trend Charts */}
       {trendCharts.length > 0 && <TrendChartsSection charts={trendCharts} totalMonths={historicalReports.length} />}
