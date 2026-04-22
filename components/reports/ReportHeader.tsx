@@ -31,7 +31,7 @@ export default function ReportHeader({ clientName, period, status, updatedAt, cl
           <div>
             <h1 className="text-xl font-bold text-white">{clientName}</h1>
             <p className="text-indigo-200 text-sm mt-0.5">{periodLabel(period)} Performance Report</p>
-            {lastUpdated && (
+            {lastUpdated && !clientView && (
               <p className="text-indigo-300 text-xs mt-1 flex items-center gap-1">
                 <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
