@@ -67,6 +67,7 @@ const ADMIN_NAV: NavItem[]  = [
 ];
 const TEAM_NAV: NavItem[]   = [
   { href: "/team",           label: "Dashboard",   icon: Icons.dashboard },
+  { href: "/team/clients",   label: "Clients",     icon: Icons.clients   },
   { href: "/team/upload",    label: "Upload Data", icon: Icons.upload    },
 ];
 const CLIENT_NAV: NavItem[] = [
