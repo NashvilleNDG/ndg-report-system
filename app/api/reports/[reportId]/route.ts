@@ -56,7 +56,7 @@ export async function PUT(
   if (!report) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   const body = await req.json();
-  const { status, notes, sendEmail = true } = body;
+  const { status, notes, readyForReview, sendEmail = true } = body;
 
   if (status !== undefined && role !== "ADMIN") {
     return NextResponse.json({ error: "Only ADMIN can change report status" }, { status: 403 });
@@ -64,10 +64,12 @@ export async function PUT(
 
   const data: Record<string, unknown> = {};
   if (notes !== undefined) data.notes = notes;
+  if (readyForReview !== undefined) data.readyForReview = Boolean(readyForReview);
   if (status !== undefined) {
     data.status = status;
     if (status === "PUBLISHED" && report.status !== "PUBLISHED") {
       data.publishedAt = new Date();
+      data.readyForReview = false; // clear review flag on publish
     }
   }
 

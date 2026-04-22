@@ -11,6 +11,7 @@ interface Report {
   period: string;
   status: string;
   notes: string | null;
+  readyForReview: boolean;
   updatedAt: string;
 }
 
@@ -181,7 +182,11 @@ export default function AdminClientDetailPage() {
     });
     if (res.ok) {
       setReports((prev) =>
-        prev.map((r) => r.id === report.id ? { ...r, status: newStatus } : r)
+        prev.map((r) =>
+          r.id === report.id
+            ? { ...r, status: newStatus, readyForReview: newStatus === "PUBLISHED" ? false : r.readyForReview }
+            : r
+        )
       );
     }
     setPublishing(null);
@@ -369,13 +374,21 @@ export default function AdminClientDetailPage() {
                 <tr key={r.id} className="hover:bg-gray-50 transition-colors align-top">
                   <td className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">{periodLabel(r.period)}</td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${
-                      r.status === "PUBLISHED"
-                        ? "bg-green-100 text-green-700"
-                        : "bg-yellow-100 text-yellow-700"
-                    }`}>
-                      {r.status}
-                    </span>
+                    <div className="flex flex-col gap-1">
+                      <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold ${
+                        r.status === "PUBLISHED"
+                          ? "bg-green-100 text-green-700"
+                          : "bg-yellow-100 text-yellow-700"
+                      }`}>
+                        {r.status}
+                      </span>
+                      {r.readyForReview && r.status !== "PUBLISHED" && (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-purple-100 text-purple-700 border border-purple-200">
+                          <span className="w-1.5 h-1.5 rounded-full bg-purple-500" />
+                          Review Requested
+                        </span>
+                      )}
+                    </div>
                   </td>
                   <td className="px-6 py-4 text-gray-500 whitespace-nowrap">
                     {new Date(r.updatedAt).toLocaleDateString()}

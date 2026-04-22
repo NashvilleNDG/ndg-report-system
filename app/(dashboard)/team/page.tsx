@@ -15,6 +15,7 @@ interface ReportStatus {
   id: string;
   status: "DRAFT" | "PUBLISHED";
   updatedAt: string;
+  readyForReview: boolean;
 }
 
 function timeAgo(dateStr: string): string {
@@ -59,6 +60,7 @@ export default function TeamDashboardPage() {
   const [selectedMonth, setSelectedMonth] = useState(currentPeriod());
   const [loadingClients, setLoadingClients] = useState(true);
   const [loadingReports, setLoadingReports] = useState(false);
+  const [search, setSearch] = useState("");
 
   // Fetch client list once
   useEffect(() => {
@@ -73,13 +75,14 @@ export default function TeamDashboardPage() {
     setLoadingReports(true);
     fetch(`/api/reports?period=${selectedMonth}`)
       .then((r) => (r.ok ? r.json() : []))
-      .then((reports: Array<{ clientId: string; id: string; status: string; updatedAt: string }>) => {
+      .then((reports: Array<{ clientId: string; id: string; status: string; updatedAt: string; readyForReview: boolean }>) => {
         const map: Record<string, ReportStatus> = {};
         reports.forEach((r) => {
           map[r.clientId] = {
             id: r.id,
             status: r.status as "DRAFT" | "PUBLISHED",
             updatedAt: r.updatedAt,
+            readyForReview: r.readyForReview ?? false,
           };
         });
         setReportMap(map);
@@ -89,8 +92,12 @@ export default function TeamDashboardPage() {
 
   const activeClients = clients.filter((c) => c.isActive);
 
+  const filteredClients = search.trim()
+    ? activeClients.filter((c) => c.name.toLowerCase().includes(search.toLowerCase()))
+    : activeClients;
+
   // Sort: NOT_STARTED → DRAFT → PUBLISHED
-  const sortedClients = [...activeClients].sort((a, b) => {
+  const sortedClients = [...filteredClients].sort((a, b) => {
     const aOrder = STATUS_CONFIG[reportMap[a.id]?.status ?? "NOT_STARTED"].order;
     const bOrder = STATUS_CONFIG[reportMap[b.id]?.status ?? "NOT_STARTED"].order;
     return aOrder - bOrder;
@@ -99,6 +106,7 @@ export default function TeamDashboardPage() {
   const publishedCount  = activeClients.filter((c) => reportMap[c.id]?.status === "PUBLISHED").length;
   const draftCount      = activeClients.filter((c) => reportMap[c.id]?.status === "DRAFT").length;
   const notStartedCount = activeClients.length - publishedCount - draftCount;
+  const reviewCount     = activeClients.filter((c) => reportMap[c.id]?.readyForReview).length;
 
   // Month navigation helpers
   const changeMonth = (delta: number) => {
@@ -129,15 +137,23 @@ export default function TeamDashboardPage() {
             Select a reporting period, then enter data for each client.
           </p>
         </div>
-        <Link
-          href="/team/upload"
-          className="inline-flex items-center gap-2 bg-white border border-gray-200 text-gray-700 px-4 py-2 rounded-xl text-sm font-medium hover:bg-gray-50 transition-colors shadow-sm"
-        >
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-          </svg>
-          Upload Excel / Drive
-        </Link>
+        <div className="flex items-center gap-2 flex-wrap">
+          {reviewCount > 0 && (
+            <span className="inline-flex items-center gap-1.5 bg-purple-50 border border-purple-200 text-purple-700 text-xs font-bold px-3 py-1.5 rounded-full shadow-sm animate-pulse">
+              <span className="w-1.5 h-1.5 bg-purple-500 rounded-full" />
+              {reviewCount} awaiting review
+            </span>
+          )}
+          <Link
+            href="/team/upload"
+            className="inline-flex items-center gap-2 bg-white border border-gray-200 text-gray-700 px-4 py-2 rounded-xl text-sm font-medium hover:bg-gray-50 transition-colors shadow-sm"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+            </svg>
+            Drive Sync
+          </Link>
+        </div>
       </div>
 
       {/* ── Period Selector ─────────────────────────────────────────────────── */}
@@ -188,6 +204,35 @@ export default function TeamDashboardPage() {
         </div>
       </div>
 
+      {/* ── Search ─────────────────────────────────────────────────────────── */}
+      {!loadingClients && activeClients.length > 0 && (
+        <div className="relative">
+          <svg
+            className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none"
+            fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+          <input
+            type="text"
+            placeholder="Search clients…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent shadow-sm"
+          />
+          {search && (
+            <button
+              onClick={() => setSearch("")}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          )}
+        </div>
+      )}
+
       {/* ── Completion Stats ────────────────────────────────────────────────── */}
       {activeClients.length > 0 && !loadingClients && (
         <div className="grid grid-cols-3 gap-3">
@@ -237,18 +282,34 @@ export default function TeamDashboardPage() {
             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            {activeClients.length} active client{activeClients.length !== 1 ? "s" : ""} —{" "}
-            {publishedCount === activeClients.length
-              ? "🎉 All reports published!"
-              : `${activeClients.length - publishedCount} still need${activeClients.length - publishedCount === 1 ? "s" : ""} attention`}
+            {search
+              ? `${sortedClients.length} of ${activeClients.length} client${activeClients.length !== 1 ? "s" : ""} match`
+              : `${activeClients.length} active client${activeClients.length !== 1 ? "s" : ""} — ${
+                  publishedCount === activeClients.length
+                    ? "🎉 All reports published!"
+                    : `${activeClients.length - publishedCount} still need${activeClients.length - publishedCount === 1 ? "s" : ""} attention`
+                }`}
           </p>
+
+          {sortedClients.length === 0 && search ? (
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-12 text-center">
+              <svg className="w-10 h-10 text-gray-200 mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              <p className="text-gray-400 font-medium">No clients match &ldquo;{search}&rdquo;</p>
+              <button onClick={() => setSearch("")} className="text-xs text-indigo-500 hover:text-indigo-700 mt-2 font-medium">
+                Clear search
+              </button>
+            </div>
+          ) : null}
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 stagger-children">
             {sortedClients.map((client) => {
-              const report   = reportMap[client.id];
-              const statusKey = report?.status ?? "NOT_STARTED";
-              const cfg       = STATUS_CONFIG[statusKey];
-              const hasReport = !!report;
+              const report        = reportMap[client.id];
+              const statusKey     = report?.status ?? "NOT_STARTED";
+              const cfg           = STATUS_CONFIG[statusKey];
+              const hasReport     = !!report;
+              const inReview      = report?.readyForReview ?? false;
 
               return (
                 <div
@@ -271,11 +332,19 @@ export default function TeamDashboardPage() {
                       </div>
                     </div>
 
-                    {/* Status badge */}
-                    <span className={`inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full border flex-shrink-0 ${cfg.bg}`}>
-                      <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />
-                      {cfg.label}
-                    </span>
+                    {/* Status / review badges */}
+                    <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                      <span className={`inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full border ${cfg.bg}`}>
+                        <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />
+                        {cfg.label}
+                      </span>
+                      {inReview && (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full border bg-purple-50 text-purple-700 border-purple-200">
+                          <span className="w-1.5 h-1.5 rounded-full bg-purple-500" />
+                          Review Requested
+                        </span>
+                      )}
+                    </div>
                   </div>
 
                   {/* Last saved */}
