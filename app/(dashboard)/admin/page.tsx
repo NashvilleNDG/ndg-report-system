@@ -3,12 +3,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { currentPeriod, periodLabel } from "@/lib/report-utils";
-import dynamic from "next/dynamic";
-
-const PublishedTrendChart = dynamic(
-  () => import("@/components/charts/PublishedTrendChart"),
-  { ssr: false }
-);
+import AdminChartWrapper from "@/components/charts/AdminChartWrapper";
 
 export default async function AdminOverviewPage() {
   const session = await auth();
@@ -372,7 +367,7 @@ export default async function AdminOverviewPage() {
               </div>
             </div>
             <div className="px-3 pt-3 pb-2">
-              <PublishedTrendChart data={chartData} />
+              <AdminChartWrapper data={chartData} />
             </div>
           </div>
 
