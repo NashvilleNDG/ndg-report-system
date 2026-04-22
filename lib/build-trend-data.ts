@@ -46,7 +46,7 @@ export function buildTrendData(reports: HistoricalReport[]): TrendChartConfig[] 
   const facebook  = makeSeries("facebook-follows",     "Facebook Follows",       "Follows",       "#1877f2", (r) => r.socialMedia?.facebook?.follows);
   const youtube   = makeSeries("youtube-views",        "YouTube Views",          "Views",         "#ff0000", (r) => r.socialMedia?.youtube?.views);
   const tiktok    = makeSeries("tiktok-follows",       "TikTok Follows",         "Follows",       "#010101", (r) => r.socialMedia?.tiktok?.follows);
-  const website   = makeSeries("website-views",        "Website Views",          "Views",         "#0d9488", (r) => r.websiteData?.views);
+  const website   = makeSeries("website-views",        "Website Visits",         "Visits",        "#0d9488", (r) => r.websiteData?.views);
   const gmb       = makeSeries("gmb-views",            "Google Business Views",  "Views",         "#ea580c", (r) => r.gmbData?.views);
 
   for (const c of [instagram, facebook, youtube, tiktok, website, gmb]) {

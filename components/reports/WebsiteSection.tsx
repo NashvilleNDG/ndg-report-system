@@ -30,7 +30,7 @@ export default function WebsiteSection({ data }: { data: WebsiteMetrics }) {
           <div className="grid grid-cols-2 gap-3">
             <StatCard label="Total Users" value={formatNumber(data.totalUsers)} accent="teal" />
             <StatCard label="New Users"   value={formatNumber(data.newUsers)} accent="teal" />
-            <StatCard label="Views"       value={formatNumber(data.views)} accent="teal" />
+            <StatCard label="Visits"      value={formatNumber(data.views)} accent="teal" />
             <StatCard label="Event Count" value={formatNumber(data.eventCount)} accent="teal" />
           </div>
         </div>

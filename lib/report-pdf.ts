@@ -184,7 +184,7 @@ function websiteBlock(doc: Doc, cy: number, x: number, w: number, data: WebsiteM
   statCard(doc, x + CARD_W + GAP, cy, CARD_W, CARD_H, "New Users",  fmt(data.newUsers));
   cy += CARD_H + GAP;
 
-  statCard(doc, x,                cy, CARD_W, CARD_H, "Views",       fmt(data.views));
+  statCard(doc, x,                cy, CARD_W, CARD_H, "Visits",      fmt(data.views));
   statCard(doc, x + CARD_W + GAP, cy, CARD_W, CARD_H, "Event Count", fmt(data.eventCount));
   cy += CARD_H;
 

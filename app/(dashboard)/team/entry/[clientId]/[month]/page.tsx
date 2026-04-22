@@ -44,7 +44,7 @@ const FIELDS: Record<Tab, { key: string; label: string; hint?: string; isFloat?:
   Website: [
     { key: "totalUsers", label: "Total Users", hint: "All users this period" },
     { key: "newUsers",   label: "New Users",   hint: "First-time visitors" },
-    { key: "views",      label: "Page Views",  hint: "Total pages viewed" },
+    { key: "views",      label: "Visits",      hint: "Total website visits" },
     { key: "eventCount", label: "Event Count", hint: "Tracked events / conversions" },
   ],
   Email: [
